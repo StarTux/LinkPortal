@@ -1,0 +1,21 @@
+name: LinkPortal
+description: Link parallel worlds via nether portals
+author: StarTux
+version: 0.1
+main: com.winthier.linkportal.LinkPortalPlugin
+depend: [PlayerCache]
+commands:
+  LinkPortal:
+    description: Admin interface
+    usage: /<command> Reload - Reload the configuration files.
+    permission: linkportal.linkportal
+permissions:
+  linkportal.linkportal:
+    description: Use the "/linkportal" command
+    default: op
+  linkportal.create:
+    description: Create a LinkPortal portal
+    default: op
+  linkportal.admin:
+    description: Do admin stuff
+    default: op
