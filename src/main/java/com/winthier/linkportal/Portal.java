@@ -37,7 +37,7 @@ public class Portal {
     public Location findWarpLocation() {
         Block signBlock = getSignBlock();
         if (signBlock == null) return null;
-        Set<Block> blocks = Util.findPortalBlocksNearSign(signBlock);
+        Set<Block> blocks = Util.findPortalBlocksNearSign(signBlock, Util.PortalBlockType.PORTAL);
         if (blocks == null || blocks.isEmpty()) return null;
         int x = 0, y = Integer.MAX_VALUE, z = 0;
         for (Block block: blocks) {
@@ -48,7 +48,7 @@ public class Portal {
         return new Location(
             signBlock.getWorld(),
             (double)x / (double)blocks.size() + 0.5,
-            (double)y + 1.0,
+            (double)y,
             (double)z / (double)blocks.size() + 0.5);
     }
     

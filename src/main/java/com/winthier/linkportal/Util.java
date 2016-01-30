@@ -16,29 +16,37 @@ import org.bukkit.material.MaterialData;
 
 public class Util {
     static final BlockFace[] faces = { BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.UP, BlockFace.DOWN };
+    enum PortalBlockType {
+        FRAME, PORTAL;
+    }
 
-    private static void checkPortalBlock(final Block block, Set<Block> blocks, Set<Block> checked) {
+    private static void checkPortalBlock(final Block block, Set<Block> blocks, Set<Block> checked, PortalBlockType blockType) {
         if (checked.contains(block)) return;
         checked.add(block);
         Material type = block.getType();
         if (type.isSolid()) {
-            blocks.add(block);
+            if (blockType == PortalBlockType.FRAME) {
+                blocks.add(block);
+            }
         }
         if (type == Material.PORTAL) {
+            if (blockType == PortalBlockType.PORTAL) {
+                blocks.add(block);
+            }
             for (BlockFace face : faces) {
                 Block otherBlock = block.getRelative(face);
-                checkPortalBlock(otherBlock, blocks, checked);
+                checkPortalBlock(otherBlock, blocks, checked, blockType);
             }
         }
     }
 
-    static Set<Block> findPortalBlocksNear(final Block block) {
+    static Set<Block> findPortalBlocksNear(final Block block, PortalBlockType blockType) {
         Set<Block> blocks = new HashSet<Block>();
         Set<Block> checked = new HashSet<Block>();
-        if (block.getType() == Material.PORTAL) checkPortalBlock(block, blocks, checked);
+        if (block.getType() == Material.PORTAL) checkPortalBlock(block, blocks, checked, blockType);
         for (BlockFace face : faces) {
             Block otherBlock = block.getRelative(face);
-            if (otherBlock.getType() == Material.PORTAL) checkPortalBlock(otherBlock, blocks, checked);
+            if (otherBlock.getType() == Material.PORTAL) checkPortalBlock(otherBlock, blocks, checked, blockType);
         }
         return blocks;
     }
@@ -58,18 +66,18 @@ public class Util {
     }
 
     static Sign findPortalSignNear(final Block loc) {
-        return findPortalSignNear(findPortalBlocksNear(loc));
+        return findPortalSignNear(findPortalBlocksNear(loc, PortalBlockType.FRAME));
     }
 
     static Sign findPortalSignNear(final Location loc) {
         return findPortalSignNear(loc.getBlock());
     }
 
-    static Set<Block> findPortalBlocksNearSign(final Block block) {
+    static Set<Block> findPortalBlocksNearSign(final Block block, PortalBlockType blockType) {
         MaterialData data = block.getState().getData();
         if (!(data instanceof org.bukkit.material.Sign)) return null;
         org.bukkit.material.Sign sign = (org.bukkit.material.Sign)data;
-        return findPortalBlocksNear(block.getRelative(sign.getAttachedFace()));
+        return findPortalBlocksNear(block.getRelative(sign.getAttachedFace()), blockType);
     }
 
     static String format(String string, Object... args) {

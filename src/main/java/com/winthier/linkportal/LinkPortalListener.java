@@ -29,9 +29,21 @@ class LinkPortalListener implements Listener {
         if (portal == null) return;
         event.setCancelled(true);
         if (Util.entityWalkThroughPortal(player, portal)) {
-            Util.msg(player, "&3&lLinkPortal&r You enter your portal ring &r%s", portal.getRingName());
+            final String ownerName;
+            if (portal.getOwnerUuid() == player.getUniqueId()) {
+                ownerName = "your";
+            } else {
+                if (portal.getOwnerName().endsWith("s") ||
+                    portal.getOwnerName().endsWith("x") ||
+                    portal.getOwnerName().endsWith("z")) {
+                    ownerName = portal.getOwnerName() + "'";
+                } else {
+                    ownerName = portal.getOwnerName() + "'s";
+                }
+            }
+            Util.msg(player, "&3&lLinkPortal&r You enter &a%s&r Link Portal &a%s", ownerName, portal.getRingName());
         } else {
-            Util.msg(player, "&3&lLinkPortal&r &cThis link portal has no destination");
+            Util.msg(player, "&4&lLinkPortal&r &cThis Link Portal has no destination");
         }
     }
 
@@ -52,26 +64,26 @@ class LinkPortalListener implements Listener {
         if (!event.getLine(0).equalsIgnoreCase("[link]")) return;
         final Player player = event.getPlayer();
         if (!player.hasPermission("linkportal.create")) {
-            Util.msg(player, "&3&lLinkPortal&r &cYou don't have permission!");
+            Util.msg(player, "&4&lLinkPortal&r &cYou don't have permission!");
             event.setCancelled(true);
             return;
         }
-        Set<Block> blocks = Util.findPortalBlocksNearSign(event.getBlock());
+        Set<Block> blocks = Util.findPortalBlocksNearSign(event.getBlock(), Util.PortalBlockType.PORTAL);
         if (blocks == null || blocks.isEmpty()) {
-            Util.msg(player, "&3&lLinkPortal&r &cYour sign is not attached to a nether portal!");
+            Util.msg(player, "&4&lLinkPortal&r &cYour sign is not attached to a nether portal!");
             event.setCancelled(true);
             return;
         }
         Sign sign = Util.findPortalSignNear(blocks);
         if (sign != null) {
-            Util.msg(player, "&3&lLinkPortal&r &cThis nether portal already has a link sign attached!");
+            Util.msg(player, "&4&lLinkPortal&r &cThis nether portal already has a link sign attached!");
             event.setCancelled(true);
             return;
         }
         Portal portal = Portal.of(player, event.getBlock(), event.getLines());
         LinkPortalPlugin.instance.portals.addPortal(portal);
         LinkPortalPlugin.instance.portals.savePortals();
-        Util.msg(player, "&3&lLinkPortal&r You created a link portal");
+        Util.msg(player, "&3&lLinkPortal&r You created a Link Portal");
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -92,6 +104,6 @@ class LinkPortalListener implements Listener {
         if (portal == null) return;
         LinkPortalPlugin.instance.portals.removePortal(portal);
         LinkPortalPlugin.instance.portals.savePortals();
-        Util.msg(event.getPlayer(), "&3&lLinkPortal&r Link portal destroyed");
+        Util.msg(event.getPlayer(), "&3&lLinkPortal&r Link Portal destroyed");
     }
 }
