@@ -60,7 +60,7 @@ public class Portal {
             return getAttachedBlock().getRelative(0, -2, 0).getLocation().add(0.5, 0.0, 0.5);
         } else {
             Block attachedBlock = getAttachedBlock();
-            if (signBlock == null) return null;
+            if (attachedBlock == null) return null;
             Set<Block> blocks = Util.findPortalBlocksNear(attachedBlock, Util.PortalBlockType.PORTAL);
             if (blocks == null || blocks.isEmpty()) return null;
             int x = 0, y = Integer.MAX_VALUE, z = 0;
