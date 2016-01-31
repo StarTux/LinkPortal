@@ -16,6 +16,9 @@ permissions:
   linkportal.create:
     description: Create a LinkPortal portal
     default: op
+  linkportal.portal:
+    description: Create a custom Nether portal
+    default: op
   linkportal.admin:
     description: Do admin stuff
     default: op

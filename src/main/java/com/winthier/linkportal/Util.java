@@ -1,5 +1,6 @@
 package com.winthier.linkportal;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +19,9 @@ public class Util {
     static final BlockFace[] horizontalFaces = { BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST };
     enum PortalBlockType {
         FRAME, PORTAL;
+    }
+    enum AxisAlignment {
+        X, Z;
     }
 
     private static void checkPortalBlock(final Block block, Set<Block> blocks, Set<Block> checked, PortalBlockType blockType) {
@@ -97,6 +101,13 @@ public class Util {
         return matSign.getAttachedFace();
     }
 
+    static BlockFace getSignFacing(Block block) {
+        MaterialData data = block.getState().getData();
+        if (!(data instanceof org.bukkit.material.Sign)) return null;
+        org.bukkit.material.Sign matSign = (org.bukkit.material.Sign)data;
+        return matSign.getFacing();
+    }
+
     static boolean isLinkSign(Block block) {
         BlockState state = block.getState();
         if (!(state instanceof Sign)) return false;
@@ -117,5 +128,68 @@ public class Util {
             return sign;
         }
         return null;
+    }
+
+    private static boolean checkBlockForPortalCreation(final Block block, Set<Block> blocks, Set<Block> searched, List<BlockFace> searchDirections) {
+        if (blocks.size() > 100) return false;
+        if (searched.contains(block)) return true;
+        searched.add(block);
+        Material blockType = block.getType();
+        if (blockType == Material.AIR) {
+            blocks.add(block);
+            for (BlockFace face: searchDirections) {
+                if (!checkBlockForPortalCreation(block.getRelative(face), blocks, searched, searchDirections)) {
+                    return false;
+                }
+            }
+            return true;
+        } else if (blockType.isSolid()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    static boolean createNetherPortal(Block block, AxisAlignment alignment) {
+        final List<BlockFace> searchDirections;
+        final List<BlockFace> alternateDirections;
+        final int data;
+        switch (alignment) {
+        case X:
+            searchDirections = Arrays.asList(BlockFace.UP, BlockFace.DOWN, BlockFace.WEST, BlockFace.EAST);
+            alternateDirections = Arrays.asList(BlockFace.NORTH, BlockFace.SOUTH);
+            data = 1;
+            break;
+        case Z:
+            searchDirections = Arrays.asList(BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.SOUTH);
+            alternateDirections = Arrays.asList(BlockFace.EAST, BlockFace.WEST);
+            data = 2;
+            break;
+        default:
+            return false;
+        }
+        final Set<Block> blocks = new HashSet<>();
+        final Set<Block> searched = new HashSet<>();
+        blocks.add(block);
+        searched.add(block);
+        for (BlockFace face: searchDirections) {
+            if (!checkBlockForPortalCreation(block.getRelative(face), blocks, searched, searchDirections)) {
+                return false;
+            }
+        }
+        if (blocks.isEmpty()) return false;
+        for (Block portal: blocks) {
+            for (BlockFace face: alternateDirections) {
+                if (portal.getRelative(face).getType() == Material.PORTAL) return false;
+            }
+        }
+        
+        for (Block portal: blocks) {
+            BlockState state = portal.getState();
+            state.setType(Material.PORTAL);
+            state.setRawData((byte)data);
+            state.update(true, false);
+        }
+        return true;
     }
 }

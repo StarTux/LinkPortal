@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Entity;
@@ -67,17 +68,46 @@ class LinkPortalListener implements Listener {
     
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onSignChange(SignChangeEvent event) {
-        if (!event.getLine(0).equalsIgnoreCase("[link]")) return;
-        final Player player = event.getPlayer();
-        if (!player.hasPermission("linkportal.create")) {
-            Util.msg(player, "&4&lLinkPortal&r &cYou don't have permission!");
+        final String firstLine = event.getLine(0);
+        if (firstLine.equalsIgnoreCase("[link]")) {
+            final Player player = event.getPlayer();
+            if (!player.hasPermission("linkportal.create")) {
+                Util.msg(player, "&4&lLinkPortal&r &cYou don't have permission!");
+                event.setCancelled(true);
+                return;
+            }
+            Portal portal = Portal.of(player, event.getBlock(), event.getLines());
+            LinkPortalPlugin.instance.portals.addPortal(portal);
+            LinkPortalPlugin.instance.portals.savePortals();
+            Util.msg(player, "&3&lLinkPortal&r You created a Link Portal");
+        } else if (firstLine.equalsIgnoreCase("[portal]")) {
             event.setCancelled(true);
-            return;
+            if (!event.getPlayer().hasPermission("linkportal.portal")) return;
+            final Block block = event.getBlock();
+            BlockFace facing = Util.getSignFacing(block);
+            if (facing == null) return;
+            final Util.AxisAlignment alignment;
+            switch (facing) {
+            case EAST:
+            case WEST:
+            case EAST_NORTH_EAST:
+            case EAST_SOUTH_EAST:
+            case WEST_NORTH_WEST:
+            case WEST_SOUTH_WEST:
+                alignment = Util.AxisAlignment.Z;
+                break;
+            case NORTH:
+            case SOUTH:
+            case NORTH_NORTH_EAST:
+            case NORTH_NORTH_WEST:
+            case SOUTH_SOUTH_EAST:
+            case SOUTH_SOUTH_WEST:
+                alignment = Util.AxisAlignment.X;
+                break;
+            default: return;
+            }
+            Util.createNetherPortal(block, alignment);
         }
-        Portal portal = Portal.of(player, event.getBlock(), event.getLines());
-        LinkPortalPlugin.instance.portals.addPortal(portal);
-        LinkPortalPlugin.instance.portals.savePortals();
-        Util.msg(player, "&3&lLinkPortal&r You created a Link Portal");
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -107,7 +137,6 @@ class LinkPortalListener implements Listener {
         final Block block = event.getClickedBlock();
         final Player player = event.getPlayer();
         Block attachedBlock = null;
-        System.out.println("Interact " + action + " " + block.getType());
         if (action == Action.RIGHT_CLICK_BLOCK) {
             switch (block.getType()) {
             case STONE_BUTTON:
@@ -133,12 +162,9 @@ class LinkPortalListener implements Listener {
         } else {
             return;
         }
-        System.out.println("Attached " + attachedBlock.getType());
         Sign sign = Util.findAttachedLinkSign(attachedBlock);
-        System.out.println("Sign " + sign);
         if (sign == null) return;
         Portal portal = LinkPortalPlugin.instance.portals.portalWithSign(sign);
-        System.out.println("Portal " + portal);
         if (portal == null) return;
         event.setCancelled(true);
         if (portal.playerWalkThroughPortal(player)) {
