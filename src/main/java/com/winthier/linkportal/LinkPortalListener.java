@@ -1,7 +1,10 @@
 package com.winthier.linkportal;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -11,13 +14,29 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
 class LinkPortalListener implements Listener {
+    final Map<UUID, Long> cooldowns = new HashMap<>();
+
+    private boolean isOnCooldown(UUID uuid) {
+        Long cooldown = cooldowns.get(uuid);
+        long now = System.currentTimeMillis();
+        if (cooldown == null) {
+            return false;
+        } else if (now - cooldown > 1000) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+    
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void onPlayerPortal(PlayerPortalEvent event) {
         if (event.getCause() != TeleportCause.NETHER_PORTAL) return;
@@ -28,22 +47,9 @@ class LinkPortalListener implements Listener {
         Portal portal = LinkPortalPlugin.instance.portals.portalWithSign(sign);
         if (portal == null) return;
         event.setCancelled(true);
-        if (Util.entityWalkThroughPortal(player, portal)) {
-            final String ownerName;
-            if (portal.getOwnerUuid() == player.getUniqueId()) {
-                ownerName = "your";
-            } else {
-                if (portal.getOwnerName().endsWith("s") ||
-                    portal.getOwnerName().endsWith("x") ||
-                    portal.getOwnerName().endsWith("z")) {
-                    ownerName = portal.getOwnerName() + "'";
-                } else {
-                    ownerName = portal.getOwnerName() + "'s";
-                }
-            }
-            Util.msg(player, "&3&lLinkPortal&r You enter &a%s&r Link Portal &a%s", ownerName, portal.getRingName());
-        } else {
-            Util.msg(player, "&4&lLinkPortal&r &cThis Link Portal has no destination");
+        if (isOnCooldown(player.getUniqueId())) return; // Do this late because we have to cancel the event if it's a Link Portal!
+        if (portal.playerWalkThroughPortal(player)) {
+            cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
         }
     }
 
@@ -56,7 +62,7 @@ class LinkPortalListener implements Listener {
         Portal portal = LinkPortalPlugin.instance.portals.portalWithSign(sign);
         if (portal == null) return;
         event.setCancelled(true);
-        Util.entityWalkThroughPortal(entity, portal);
+        portal.entityWalkThroughPortal(entity);
     }
     
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
@@ -65,18 +71,6 @@ class LinkPortalListener implements Listener {
         final Player player = event.getPlayer();
         if (!player.hasPermission("linkportal.create")) {
             Util.msg(player, "&4&lLinkPortal&r &cYou don't have permission!");
-            event.setCancelled(true);
-            return;
-        }
-        Set<Block> blocks = Util.findPortalBlocksNearSign(event.getBlock(), Util.PortalBlockType.PORTAL);
-        if (blocks == null || blocks.isEmpty()) {
-            Util.msg(player, "&4&lLinkPortal&r &cYour sign is not attached to a nether portal!");
-            event.setCancelled(true);
-            return;
-        }
-        Sign sign = Util.findPortalSignNear(blocks);
-        if (sign != null) {
-            Util.msg(player, "&4&lLinkPortal&r &cThis nether portal already has a link sign attached!");
             event.setCancelled(true);
             return;
         }
@@ -105,5 +99,50 @@ class LinkPortalListener implements Listener {
         LinkPortalPlugin.instance.portals.removePortal(portal);
         LinkPortalPlugin.instance.portals.savePortals();
         Util.msg(event.getPlayer(), "&3&lLinkPortal&r Link Portal destroyed");
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        final Action action = event.getAction();
+        final Block block = event.getClickedBlock();
+        final Player player = event.getPlayer();
+        Block attachedBlock = null;
+        System.out.println("Interact " + action + " " + block.getType());
+        if (action == Action.RIGHT_CLICK_BLOCK) {
+            switch (block.getType()) {
+            case STONE_BUTTON:
+            case WOOD_BUTTON:
+                break;
+            default:
+                return;
+            }
+            if (!player.getLocation().getBlock().equals(block.getRelative(0, -1, 0))) return;
+            attachedBlock = block.getRelative(0, 1, 0);
+        } else if (action == Action.PHYSICAL) {
+            switch (block.getType()) {
+            case STONE_PLATE:
+            case GOLD_PLATE:
+            case IRON_PLATE:
+            case WOOD_PLATE:
+                break;
+            default:
+                return;
+            }
+            if (isOnCooldown(player.getUniqueId())) return;
+            attachedBlock = block.getRelative(0, 2, 0);
+        } else {
+            return;
+        }
+        System.out.println("Attached " + attachedBlock.getType());
+        Sign sign = Util.findAttachedLinkSign(attachedBlock);
+        System.out.println("Sign " + sign);
+        if (sign == null) return;
+        Portal portal = LinkPortalPlugin.instance.portals.portalWithSign(sign);
+        System.out.println("Portal " + portal);
+        if (portal == null) return;
+        event.setCancelled(true);
+        if (portal.playerWalkThroughPortal(player)) {
+            cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
+        }
     }
 }

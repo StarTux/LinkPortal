@@ -10,12 +10,12 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.material.MaterialData;
 
 public class Util {
     static final BlockFace[] faces = { BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.UP, BlockFace.DOWN };
+    static final BlockFace[] horizontalFaces = { BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST };
     enum PortalBlockType {
         FRAME, PORTAL;
     }
@@ -90,31 +90,32 @@ public class Util {
         player.sendMessage(format(msg, args));
     }
 
-    static boolean entityWalkThroughPortal(Entity entity, Portal portal) {
-        List<Portal> ring = LinkPortalPlugin.instance.portals.ringOfPortal(portal);
-        if (ring == null || ring.isEmpty()) return false;
-        int startIndex = ring.indexOf(portal);
-        for (int i = 1; i < ring.size(); ++i) {
-            int index = (startIndex + i) % ring.size();
-            Portal aPortal = ring.get(index);
-            if (entityWarpToPortal(entity, aPortal)) {
-                return true;
-            }
-        }
-        return false;
+    static BlockFace getAttachedFace(Block block) {
+        MaterialData data = block.getState().getData();
+        if (!(data instanceof org.bukkit.material.Sign)) return null;
+        org.bukkit.material.Sign matSign = (org.bukkit.material.Sign)data;
+        return matSign.getAttachedFace();
     }
 
-    static boolean entityWarpToPortal(Entity entity, Portal portal) {
-        Location loc = portal.findWarpLocation();
-        if (loc == null) {
-            LinkPortalPlugin.instance.getLogger().info("Deleting portal of "+portal.getOwnerName()+" ("+portal.getOwnerUuid()+") at "+portal.describeLocation()+" because portal blocks cannot be found.");
-            LinkPortalPlugin.instance.portals.removePortal(portal);
-            return false;
+    static boolean isLinkSign(Block block) {
+        BlockState state = block.getState();
+        if (!(state instanceof Sign)) return false;
+        Sign sign = (Sign)state;
+        return sign.getLine(0).equalsIgnoreCase("[link");
+    }
+
+    static Sign findAttachedLinkSign(Block block) {
+        for (BlockFace dir: horizontalFaces) {
+            Block nbor = block.getRelative(dir);
+            BlockFace attachedFace = getAttachedFace(nbor);
+            if (attachedFace == null) continue;
+            if (attachedFace != dir.getOppositeFace()) continue;
+            BlockState state = nbor.getState();
+            if (!(state instanceof Sign)) continue;
+            Sign sign = (Sign)state;
+            if (!sign.getLine(0).equalsIgnoreCase("[link]")) continue;
+            return sign;
         }
-        Location eLoc = entity.getLocation();
-        loc.setYaw(eLoc.getYaw());
-        loc.setPitch(eLoc.getPitch());
-        entity.teleport(loc);
-        return true;
+        return null;
     }
 }
