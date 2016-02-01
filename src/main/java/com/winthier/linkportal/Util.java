@@ -112,7 +112,7 @@ public class Util {
         BlockState state = block.getState();
         if (!(state instanceof Sign)) return false;
         Sign sign = (Sign)state;
-        return sign.getLine(0).equalsIgnoreCase("[link");
+        return sign.getLine(0).equalsIgnoreCase("[link]");
     }
 
     static Sign findAttachedLinkSign(Block block) {

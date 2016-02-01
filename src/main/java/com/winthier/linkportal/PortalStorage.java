@@ -33,6 +33,10 @@ class PortalStorage {
         }
     }
 
+    void reload() {
+        config = null;
+    }
+
     ConfigurationSection getConfig() {
         if (config == null) load();
         return config;

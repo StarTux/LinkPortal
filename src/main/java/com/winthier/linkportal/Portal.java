@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
-import lombok.experimental.NonFinal;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -29,30 +28,22 @@ public class Portal {
     UUID ownerUuid;
     String ownerName;
     String ringName;
-    // Cache
-    @NonFinal Block signBlock = null, attachedBlock = null;
 
     public Block getSignBlock() {
-        if (signBlock == null) {
-            World world = Bukkit.getServer().getWorld(signWorld);
-            if (world == null) {
-                LinkPortalPlugin.instance.getLogger().warning("World not found: " + signWorld);
-                return null;
-            }
-            signBlock = world.getBlockAt(signX, signY, signZ);
+        World world = Bukkit.getServer().getWorld(signWorld);
+        if (world == null) {
+            LinkPortalPlugin.instance.getLogger().warning("World not found: " + signWorld);
+            return null;
         }
-        return signBlock;
+        return world.getBlockAt(signX, signY, signZ);
     }
 
     public Block getAttachedBlock() {
-        if (attachedBlock == null) {
-            Block signBlock = getSignBlock();
-            if (signBlock == null) return null;
-            BlockFace attachedFace = Util.getAttachedFace(signBlock);
-            if (attachedFace == null) return null;
-            return signBlock.getRelative(attachedFace);
-        }
-        return attachedBlock;
+        Block signBlock = getSignBlock();
+        if (signBlock == null) return null;
+        BlockFace attachedFace = Util.getAttachedFace(signBlock);
+        if (attachedFace == null) return null;
+        return signBlock.getRelative(attachedFace);
     }
 
     public Location findWarpLocation() {
@@ -70,7 +61,7 @@ public class Portal {
                 z += block.getZ();
             }
             return new Location(
-                signBlock.getWorld(),
+                attachedBlock.getWorld(),
                 (double)x / (double)blocks.size() + 0.5,
                 (double)y,
                 (double)z / (double)blocks.size() + 0.5);
@@ -188,7 +179,8 @@ public class Portal {
     boolean entityWarpToPortal(Entity entity) {
         Location loc = findWarpLocation();
         if (loc == null) {
-            LinkPortalPlugin.instance.getLogger().info("Deleting portal of "+ownerName+" ("+ownerUuid+") at "+describeLocation()+" because portal blocks cannot be found.");
+            boolean signIsThere;
+            LinkPortalPlugin.instance.getLogger().info("Deleting portal \""+ringName+"\" of "+ownerName+" ("+ownerUuid+") at "+describeLocation()+" because portal blocks cannot be found.");
             LinkPortalPlugin.instance.portals.removePortal(this);
             return false;
         }

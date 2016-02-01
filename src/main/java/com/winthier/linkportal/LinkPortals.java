@@ -34,6 +34,7 @@ public class LinkPortals {
 
     public void reload() {
         portals = null;
+        storage.reload();
     }
 
     public Portal portalWithSign(Sign sign) {
