@@ -31,7 +31,7 @@ class LinkPortalListener implements Listener {
         long now = System.currentTimeMillis();
         if (cooldown == null) {
             return false;
-        } else if (now - cooldown > 1000) {
+        } else if (now - cooldown > 2000) {
             return false;
         } else {
             return true;
