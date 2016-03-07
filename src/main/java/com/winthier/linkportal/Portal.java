@@ -188,6 +188,17 @@ public class Portal {
         loc.setYaw(eLoc.getYaw());
         loc.setPitch(eLoc.getPitch());
         entity.teleport(loc);
+        switch (loc.getBlock().getType()) {
+            case STONE_PLATE:
+            case GOLD_PLATE:
+            case IRON_PLATE:
+            case WOOD_PLATE:
+                if (entity instanceof Player) {
+                    LinkPortalPlugin.instance.listener.justTeleportedToPressurePlate.add(((Player)entity).getUniqueId());
+                }
+                break;
+        default: break;
+        }
         return true;
     }
 
@@ -212,9 +223,7 @@ public class Portal {
             if (ownerUuid == player.getUniqueId()) {
                 displayName = "your";
             } else {
-                if (ownerName.endsWith("s") ||
-                    ownerName.endsWith("x") ||
-                    ownerName.endsWith("z")) {
+                if (ownerName.endsWith("s")) {
                     displayName = ownerName + "'";
                 } else {
                     displayName = ownerName + "'s";

@@ -1,6 +1,7 @@
 package com.winthier.linkportal;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,7 @@ import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
 class LinkPortalListener implements Listener {
     final Map<UUID, Long> cooldowns = new HashMap<>();
+    final Set<UUID> justTeleportedToPressurePlate = new HashSet<>();
 
     private boolean isOnCooldown(UUID uuid) {
         Long cooldown = cooldowns.get(uuid);
@@ -153,6 +155,7 @@ class LinkPortalListener implements Listener {
             case GOLD_PLATE:
             case IRON_PLATE:
             case WOOD_PLATE:
+                if (justTeleportedToPressurePlate.remove(player.getUniqueId())) return;
                 break;
             default:
                 return;
