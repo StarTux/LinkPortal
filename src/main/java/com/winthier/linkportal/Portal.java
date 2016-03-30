@@ -19,6 +19,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.material.MaterialData;
+import org.bukkit.scheduler.BukkitRunnable;
 
 @Value
 @RequiredArgsConstructor
@@ -177,7 +178,7 @@ public class Portal {
     }
 
     boolean entityWarpToPortal(Entity entity) {
-        Location loc = findWarpLocation();
+        final Location loc = findWarpLocation();
         if (loc == null) {
             boolean signIsThere;
             LinkPortalPlugin.instance.getLogger().info("Deleting portal \""+ringName+"\" of "+ownerName+" ("+ownerUuid+") at "+describeLocation()+" because portal blocks cannot be found.");
@@ -187,7 +188,11 @@ public class Portal {
         Location eLoc = entity.getLocation();
         loc.setYaw(eLoc.getYaw());
         loc.setPitch(eLoc.getPitch());
-        entity.teleport(loc);
+        new BukkitRunnable() {
+            @Override public void run() {
+                entity.teleport(loc);
+            }
+        }.runTask(LinkPortalPlugin.instance);
         switch (loc.getBlock().getType()) {
             case STONE_PLATE:
             case GOLD_PLATE:
