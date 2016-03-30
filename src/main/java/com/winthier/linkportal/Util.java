@@ -131,7 +131,7 @@ public class Util {
     }
 
     private static boolean checkBlockForPortalCreation(final Block block, Set<Block> blocks, Set<Block> searched, List<BlockFace> searchDirections) {
-        if (blocks.size() > 100) return false;
+        if (blocks.size() > 441) return false;
         if (searched.contains(block)) return true;
         searched.add(block);
         Material blockType = block.getType();
