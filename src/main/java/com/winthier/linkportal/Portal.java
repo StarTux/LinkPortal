@@ -165,6 +165,10 @@ public class Portal {
         return new Portal(signWorld, signX, signY, signZ, ownerUuid, ownerName, ringName);
     }
 
+    public boolean signLocationEquals(Portal other) {
+        return signLocationEquals(other.getSignWorld(), other.getSignX(), other.getSignY(), other.getSignZ());
+    }
+
     public boolean signLocationEquals(String worldName, int x, int y, int z) {
         return signWorld.equals(this.signWorld) && x == signX && y == signY && z == signZ;
     }

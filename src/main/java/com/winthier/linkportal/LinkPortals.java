@@ -1,6 +1,7 @@
 package com.winthier.linkportal;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import org.bukkit.block.Block;
@@ -19,6 +20,12 @@ public class LinkPortals {
     }
 
     public void addPortal(Portal portal) {
+        for (Iterator<Portal> it = portals.iterator(); it.hasNext();) {
+            Portal po = it.next();
+            if (po.signLocationEquals(portal)) {
+                it.remove();
+            }
+        }
         getPortals().add(portal);
     }
 
