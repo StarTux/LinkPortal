@@ -71,7 +71,7 @@ class LinkPortalListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onSignChange(SignChangeEvent event) {
         final String firstLine = event.getLine(0);
-        if (firstLine.equalsIgnoreCase("[link]")) {
+        if (Util.isLinkTag(firstLine)) {
             final Player player = event.getPlayer();
             if (!player.hasPermission("linkportal.create")) {
                 Util.msg(player, "&4&lLinkPortal&r &cYou don't have permission!");
@@ -82,6 +82,7 @@ class LinkPortalListener implements Listener {
             LinkPortalPlugin.instance.portals.addPortal(portal);
             LinkPortalPlugin.instance.portals.savePortals();
             Util.msg(player, "&3&lLinkPortal&r You created a Link Portal");
+            event.setLine(0, Util.format("[&5&lLink&r]"));
         } else if (firstLine.equalsIgnoreCase("[portal]")) {
             event.setCancelled(true);
             if (!event.getPlayer().hasPermission("linkportal.portal")) return;
@@ -125,7 +126,7 @@ class LinkPortalListener implements Listener {
         BlockState state = block.getState();
         if (!(state instanceof Sign)) return;
         Sign sign = (Sign)state;
-        if (!sign.getLine(0).equalsIgnoreCase("[link]")) return;
+        if (!Util.signHasLinkTag(sign)) return;
         Portal portal = LinkPortalPlugin.instance.portals.portalWithSign(sign);
         if (portal == null) return;
         LinkPortalPlugin.instance.portals.removePortal(portal);

@@ -62,7 +62,7 @@ public class Util {
                 BlockState state = otherBlock.getState();
                 if (state instanceof Sign) {
                     Sign sign = (Sign)state;
-                    if (sign.getLine(0).equalsIgnoreCase("[link]")) return sign;
+                    if (signHasLinkTag(sign)) return sign;
                 }
             }
         }
@@ -112,7 +112,7 @@ public class Util {
         BlockState state = block.getState();
         if (!(state instanceof Sign)) return false;
         Sign sign = (Sign)state;
-        return sign.getLine(0).equalsIgnoreCase("[link]");
+        return signHasLinkTag(sign);
     }
 
     static Sign findAttachedLinkSign(Block block) {
@@ -124,7 +124,7 @@ public class Util {
             BlockState state = nbor.getState();
             if (!(state instanceof Sign)) continue;
             Sign sign = (Sign)state;
-            if (!sign.getLine(0).equalsIgnoreCase("[link]")) continue;
+            if (!signHasLinkTag(sign)) continue;
             return sign;
         }
         return null;
@@ -191,5 +191,15 @@ public class Util {
             state.update(true, false);
         }
         return true;
+    }
+
+    static boolean isLinkTag(String line) {
+        if (line == null) return false;
+        return ChatColor.stripColor(line).equalsIgnoreCase("[link]");
+    }
+
+    static boolean signHasLinkTag(Sign sign) {
+        if (sign == null) return false;
+        return isLinkTag(sign.getLine(0));
     }
 }
