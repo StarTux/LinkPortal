@@ -20,7 +20,7 @@ public class LinkPortals {
     }
 
     public void addPortal(Portal portal) {
-        for (Iterator<Portal> it = portals.iterator(); it.hasNext();) {
+        for (Iterator<Portal> it = getPortals().iterator(); it.hasNext();) {
             Portal po = it.next();
             if (po.signLocationEquals(portal)) {
                 it.remove();
