@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -19,6 +20,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
@@ -174,5 +176,13 @@ class LinkPortalListener implements Listener {
         if (portal.playerWalkThroughPortal(player)) {
             cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
         }
+    }
+
+    // Deny creature spawning from custom link portals.
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onCreatureSpawn(CreatureSpawnEvent event) {
+        if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.NETHER_PORTAL) return;
+        if (event.getEntity().getLocation().getBlock().getRelative(0, -1, 0).getType() == Material.OBSIDIAN) return;
+        event.setCancelled(true);
     }
 }
