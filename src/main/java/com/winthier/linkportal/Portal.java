@@ -77,9 +77,9 @@ public class Portal {
         Block footBlock = attachedBlock.getRelative(0, -2, 0);
         Block floorBlock = attachedBlock.getRelative(0, -3, 0);
         if (!floorBlock.getType().isSolid()) return false;
-        if (chestBlock.getType().isSolid()) return false;
+        if (chestBlock.getType().isOccluding()) return false;
         if (chestBlock.getType() == Material.PORTAL) return false;
-        if (footBlock.getType().isSolid()) return false;
+        if (footBlock.getType().isOccluding()) return false;
         if (footBlock.getType() == Material.PORTAL) return false;
         return true;
     }
