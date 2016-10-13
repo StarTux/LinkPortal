@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -76,24 +77,10 @@ public class Portal {
         Block footBlock = attachedBlock.getRelative(0, -2, 0);
         Block floorBlock = attachedBlock.getRelative(0, -3, 0);
         if (!floorBlock.getType().isSolid()) return false;
-        switch (chestBlock.getType()) {
-        case AIR:
-        case STONE_BUTTON:
-        case WOOD_BUTTON:
-            break;
-        default:
-            return false;
-        }
-        switch (footBlock.getType()) {
-        case AIR:
-        case STONE_PLATE:
-        case GOLD_PLATE:
-        case IRON_PLATE:
-        case WOOD_PLATE:
-            break;
-        default:
-            return false;
-        }
+        if (chestBlock.getType().isSolid()) return false;
+        if (chestBlock.getType() == Material.PORTAL) return false;
+        if (footBlock.getType().isSolid()) return false;
+        if (footBlock.getType() == Material.PORTAL) return false;
         return true;
     }
 
@@ -185,7 +172,11 @@ public class Portal {
         final Location loc = findWarpLocation();
         if (loc == null) {
             boolean signIsThere;
-            LinkPortalPlugin.instance.getLogger().info("Deleting portal \""+ringName+"\" of "+ownerName+" ("+ownerUuid+") at "+describeLocation()+" because portal blocks cannot be found.");
+            if (isBlocky()) {
+                LinkPortalPlugin.instance.getLogger().info("Deleting portal \""+ringName+"\" (blocky) of "+ownerName+" ("+ownerUuid+") at "+describeLocation()+" because portal blocks cannot be found.");
+            } else {
+                LinkPortalPlugin.instance.getLogger().info("Deleting portal \""+ringName+"\" of "+ownerName+" ("+ownerUuid+") at "+describeLocation()+" because portal blocks cannot be found.");
+            }
             LinkPortalPlugin.instance.portals.removePortal(this);
             return false;
         }
