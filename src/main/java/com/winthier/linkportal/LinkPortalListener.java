@@ -172,9 +172,9 @@ class LinkPortalListener implements Listener {
         if (sign == null) return;
         Portal portal = LinkPortalPlugin.instance.portals.portalWithSign(sign);
         if (portal == null) return;
-        event.setCancelled(true);
         if (portal.playerWalkThroughPortal(player)) {
             cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
+            event.setCancelled(true);
         }
     }
 
