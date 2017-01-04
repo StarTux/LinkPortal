@@ -92,6 +92,7 @@ class LinkPortalListener implements Listener {
                 Util.msg(player, "&3&lLinkPortal&r You created a Link Portal (\"%s\": %d %s)", ringName, ring.size(), portalWord);
             }
             event.setLine(0, Util.format("[&5&lLink&r]"));
+            player.sendTitle("", Util.format("&aLink Portal created"));
         } else if (firstLine.equalsIgnoreCase("[portal]")) {
             event.setCancelled(true);
             if (!event.getPlayer().hasPermission("linkportal.portal")) return;
@@ -140,7 +141,9 @@ class LinkPortalListener implements Listener {
         if (portal == null) return;
         LinkPortalPlugin.instance.portals.removePortal(portal);
         LinkPortalPlugin.instance.portals.savePortals();
-        Util.msg(event.getPlayer(), "&3&lLinkPortal&r Link Portal destroyed");
+        Player player = event.getPlayer();
+        Util.msg(player, "&3&lLinkPortal&r Link Portal destroyed");
+        player.sendTitle("", Util.format("&cLink Portal destroyed"));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
