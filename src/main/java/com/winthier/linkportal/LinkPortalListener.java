@@ -83,7 +83,14 @@ class LinkPortalListener implements Listener {
             Portal portal = Portal.of(player, event.getBlock(), event.getLines());
             LinkPortalPlugin.instance.portals.addPortal(portal);
             LinkPortalPlugin.instance.portals.savePortals();
-            Util.msg(player, "&3&lLinkPortal&r You created a Link Portal");
+            String ringName = portal.getRingName();
+            List<Portal> ring = LinkPortalPlugin.instance.portals.ringOfPortal(portal);
+            String portalWord = ring.size() == 1 ? "Portal" : "Portals";
+            if (ringName == null || ringName.isEmpty()) {
+                Util.msg(player, "&3&lLinkPortal&r You created a Link Portal (Ring: %d %s)", ring.size(), portalWord);
+            } else {
+                Util.msg(player, "&3&lLinkPortal&r You created a Link Portal (\"%s\": %d %s)", ringName, ring.size(), portalWord);
+            }
             event.setLine(0, Util.format("[&5&lLink&r]"));
         } else if (firstLine.equalsIgnoreCase("[portal]")) {
             event.setCancelled(true);
