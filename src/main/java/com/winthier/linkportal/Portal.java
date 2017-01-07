@@ -42,6 +42,7 @@ public class Portal {
 
     public Block getAttachedBlock() {
         Block signBlock = getSignBlock();
+        if (!Util.isLinkSign(signBlock)) return null;
         if (signBlock == null) return null;
         BlockFace attachedFace = Util.getAttachedFace(signBlock);
         if (attachedFace == null) return null;
