@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -19,12 +20,16 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.scheduler.BukkitRunnable;
 
 class LinkPortalListener implements Listener {
     final Map<UUID, Long> cooldowns = new HashMap<>();
@@ -123,27 +128,61 @@ class LinkPortalListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onBlockBreak(BlockBreakEvent event) {
-        final Block block = event.getBlock();
-        switch (block.getType()) {
-        case SIGN:
-        case SIGN_POST:
-        case WALL_SIGN:
-            break;
-        default: return;
-        }
-        BlockState state = block.getState();
-        if (!(state instanceof Sign)) return;
-        Sign sign = (Sign)state;
-        if (!Util.signHasLinkTag(sign)) return;
-        Portal portal = LinkPortalPlugin.instance.portals.portalWithSign(sign);
+    private void checkRemovedBlock(final Block block, boolean later) {
+        if (!Util.isLinkSign(block)) return;
+        Sign sign = (Sign)block.getState();
+        final Portal portal = LinkPortalPlugin.instance.portals.portalWithSign(sign);
         if (portal == null) return;
+        if (later) {
+            new BukkitRunnable() {
+                @Override public void run() {
+                    if (block.getType() == Material.AIR) {
+                        removeBrokenPortal(portal);
+                    }
+                }
+            }.runTask(LinkPortalPlugin.instance);
+        } else {
+            removeBrokenPortal(portal);
+        }
+    }
+
+    private void removeBrokenPortal(Portal portal) {
         LinkPortalPlugin.instance.portals.removePortal(portal);
         LinkPortalPlugin.instance.portals.savePortals();
-        Player player = event.getPlayer();
-        Util.msg(player, "&3&lLinkPortal&r Link Portal destroyed");
+        if (portal.getOwnerUuid() == null) return;
+        Player player = Bukkit.getServer().getPlayer(portal.getOwnerUuid());
+        if (player == null) return;
+        String ringName = portal.getRingName();
+        if (ringName == null || ringName.isEmpty()) {
+            Util.msg(player, "&3&lLinkPortal&r Link Portal destroyed");
+        } else {
+            Util.msg(player, "&3&lLinkPortal&r Link Portal \"%s\" destroyed", ringName);
+        }
         player.sendTitle("", Util.format("&cLink Portal destroyed"));
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onBlockBreak(BlockBreakEvent event) {
+        checkRemovedBlock(event.getBlock(), false);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onBlockExplode(BlockExplodeEvent event) {
+        for (Block block: event.blockList()) {
+            checkRemovedBlock(block, false);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onEntityExplode(EntityExplodeEvent event) {
+        for (Block block: event.blockList()) {
+            checkRemovedBlock(block, false);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onBlockPhysics(BlockPhysicsEvent event) {
+        checkRemovedBlock(event.getBlock(), true);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)

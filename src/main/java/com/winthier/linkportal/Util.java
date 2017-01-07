@@ -109,6 +109,13 @@ public class Util {
     }
 
     static boolean isLinkSign(Block block) {
+        switch (block.getType()) {
+        case SIGN:
+        case SIGN_POST:
+        case WALL_SIGN:
+            break;
+        default: return false;
+        }
         BlockState state = block.getState();
         if (!(state instanceof Sign)) return false;
         Sign sign = (Sign)state;
