@@ -28,25 +28,27 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.scheduler.BukkitRunnable;
 
 class LinkPortalListener implements Listener {
     final Map<UUID, Long> cooldowns = new HashMap<>();
     final Set<UUID> justTeleportedToPressurePlate = new HashSet<>();
+    final int COOLDOWN = 5;
 
     private boolean isOnCooldown(UUID uuid) {
         Long cooldown = cooldowns.get(uuid);
         long now = System.currentTimeMillis();
         if (cooldown == null) {
             return false;
-        } else if (now - cooldown > 2000) {
+        } else if (now - cooldown > COOLDOWN * 1000) {
             return false;
         } else {
             return true;
         }
     }
-    
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void onPlayerPortal(PlayerPortalEvent event) {
         if (event.getCause() != TeleportCause.NETHER_PORTAL) return;
@@ -60,6 +62,7 @@ class LinkPortalListener implements Listener {
         if (isOnCooldown(player.getUniqueId())) return; // Do this late because we have to cancel the event if it's a Link Portal!
         if (portal.playerWalkThroughPortal(player)) {
             cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
+            player.setPortalCooldown(COOLDOWN * 20);
         }
     }
 
@@ -233,5 +236,10 @@ class LinkPortalListener implements Listener {
         if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.NETHER_PORTAL) return;
         if (event.getEntity().getLocation().getBlock().getRelative(0, -1, 0).getType() == Material.OBSIDIAN) return;
         event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        cooldowns.remove(event.getPlayer().getUniqueId());
     }
 }
