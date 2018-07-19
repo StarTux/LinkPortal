@@ -2,6 +2,8 @@ name: LinkPortal
 description: Link parallel worlds via nether portals
 author: StarTux
 version: 0.1
+website: http://cavetale.com
+api-version: 1.13
 main: com.winthier.linkportal.LinkPortalPlugin
 depend: [PlayerCache]
 commands:

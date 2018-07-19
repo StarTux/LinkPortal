@@ -19,7 +19,6 @@ import org.bukkit.block.Sign;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.material.MaterialData;
 import org.bukkit.scheduler.BukkitRunnable;
 
 @Value
@@ -79,9 +78,9 @@ public class Portal {
         Block floorBlock = attachedBlock.getRelative(0, -3, 0);
         if (!floorBlock.getType().isSolid()) return false;
         if (chestBlock.getType().isOccluding()) return false;
-        if (chestBlock.getType() == Material.PORTAL) return false;
+        if (chestBlock.getType() == Material.NETHER_PORTAL) return false;
         if (footBlock.getType().isOccluding()) return false;
-        if (footBlock.getType() == Material.PORTAL) return false;
+        if (footBlock.getType() == Material.NETHER_PORTAL) return false;
         return true;
     }
 
@@ -190,10 +189,15 @@ public class Portal {
             }
         }.runTask(LinkPortalPlugin.instance);
         switch (loc.getBlock().getType()) {
-            case STONE_PLATE:
-            case GOLD_PLATE:
-            case IRON_PLATE:
-            case WOOD_PLATE:
+        case ACACIA_PRESSURE_PLATE:
+        case BIRCH_PRESSURE_PLATE:
+        case DARK_OAK_PRESSURE_PLATE:
+        case HEAVY_WEIGHTED_PRESSURE_PLATE:
+        case JUNGLE_PRESSURE_PLATE:
+        case LIGHT_WEIGHTED_PRESSURE_PLATE:
+        case OAK_PRESSURE_PLATE:
+        case SPRUCE_PRESSURE_PLATE:
+        case STONE_PRESSURE_PLATE:
                 if (entity instanceof Player) {
                     LinkPortalPlugin.instance.listener.justTeleportedToPressurePlate.add(((Player)entity).getUniqueId());
                 }

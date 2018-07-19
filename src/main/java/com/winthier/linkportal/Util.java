@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.bukkit.Axis;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -11,17 +12,14 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
-import org.bukkit.material.MaterialData;
 
 public class Util {
     static final BlockFace[] faces = { BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.UP, BlockFace.DOWN };
     static final BlockFace[] horizontalFaces = { BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST };
     enum PortalBlockType {
         FRAME, PORTAL;
-    }
-    enum AxisAlignment {
-        X, Z;
     }
 
     private static void checkPortalBlock(final Block block, Set<Block> blocks, Set<Block> checked, PortalBlockType blockType) {
@@ -33,7 +31,7 @@ public class Util {
                 blocks.add(block);
             }
         }
-        if (type == Material.PORTAL) {
+        if (type == Material.NETHER_PORTAL) {
             if (blockType == PortalBlockType.PORTAL) {
                 blocks.add(block);
             }
@@ -47,10 +45,10 @@ public class Util {
     static Set<Block> findPortalBlocksNear(final Block block, PortalBlockType blockType) {
         Set<Block> blocks = new HashSet<Block>();
         Set<Block> checked = new HashSet<Block>();
-        if (block.getType() == Material.PORTAL) checkPortalBlock(block, blocks, checked, blockType);
+        if (block.getType() == Material.NETHER_PORTAL) checkPortalBlock(block, blocks, checked, blockType);
         for (BlockFace face : faces) {
             Block otherBlock = block.getRelative(face);
-            if (otherBlock.getType() == Material.PORTAL) checkPortalBlock(otherBlock, blocks, checked, blockType);
+            if (otherBlock.getType() == Material.NETHER_PORTAL) checkPortalBlock(otherBlock, blocks, checked, blockType);
         }
         return blocks;
     }
@@ -77,13 +75,6 @@ public class Util {
         return findPortalSignNear(loc.getBlock());
     }
 
-    static Set<Block> findPortalBlocksNearSign(final Block block, PortalBlockType blockType) {
-        MaterialData data = block.getState().getData();
-        if (!(data instanceof org.bukkit.material.Sign)) return null;
-        org.bukkit.material.Sign sign = (org.bukkit.material.Sign)data;
-        return findPortalBlocksNear(block.getRelative(sign.getAttachedFace()), blockType);
-    }
-
     static String format(String string, Object... args) {
         string = ChatColor.translateAlternateColorCodes('&', string);
         if (args.length > 0) string = String.format(string, args);
@@ -95,23 +86,18 @@ public class Util {
     }
 
     static BlockFace getAttachedFace(Block block) {
-        MaterialData data = block.getState().getData();
-        if (!(data instanceof org.bukkit.material.Sign)) return null;
-        org.bukkit.material.Sign matSign = (org.bukkit.material.Sign)data;
-        return matSign.getAttachedFace();
+        if (block.getType() != Material.WALL_SIGN) return null;
+        return ((org.bukkit.block.data.type.WallSign)block.getBlockData()).getFacing().getOppositeFace();
     }
 
     static BlockFace getSignFacing(Block block) {
-        MaterialData data = block.getState().getData();
-        if (!(data instanceof org.bukkit.material.Sign)) return null;
-        org.bukkit.material.Sign matSign = (org.bukkit.material.Sign)data;
-        return matSign.getFacing();
+        if (block.getType() != Material.WALL_SIGN) return null;
+        return ((org.bukkit.block.data.type.WallSign)block.getBlockData()).getFacing();
     }
 
     static boolean isLinkSign(Block block) {
         switch (block.getType()) {
         case SIGN:
-        case SIGN_POST:
         case WALL_SIGN:
             break;
         default: return false;
@@ -157,20 +143,17 @@ public class Util {
         }
     }
 
-    static boolean createNetherPortal(Block block, AxisAlignment alignment) {
+    static boolean createNetherPortal(Block block, Axis axis) {
         final List<BlockFace> searchDirections;
         final List<BlockFace> alternateDirections;
-        final int data;
-        switch (alignment) {
+        switch (axis) {
         case X:
             searchDirections = Arrays.asList(BlockFace.UP, BlockFace.DOWN, BlockFace.WEST, BlockFace.EAST);
             alternateDirections = Arrays.asList(BlockFace.NORTH, BlockFace.SOUTH);
-            data = 1;
             break;
         case Z:
             searchDirections = Arrays.asList(BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.SOUTH);
             alternateDirections = Arrays.asList(BlockFace.EAST, BlockFace.WEST);
-            data = 2;
             break;
         default:
             return false;
@@ -187,15 +170,13 @@ public class Util {
         if (blocks.isEmpty()) return false;
         for (Block portal: blocks) {
             for (BlockFace face: alternateDirections) {
-                if (portal.getRelative(face).getType() == Material.PORTAL) return false;
+                if (portal.getRelative(face).getType() == Material.NETHER_PORTAL) return false;
             }
         }
-        
+        BlockData portalData = Material.NETHER_PORTAL.createBlockData();
+        ((org.bukkit.block.data.Orientable)portalData).setAxis(axis);
         for (Block portal: blocks) {
-            BlockState state = portal.getState();
-            state.setType(Material.PORTAL);
-            state.setRawData((byte)data);
-            state.update(true, false);
+            portal.setBlockData(portalData, false);
         }
         return true;
     }

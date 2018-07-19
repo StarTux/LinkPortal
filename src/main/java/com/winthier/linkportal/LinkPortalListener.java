@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -107,7 +108,7 @@ class LinkPortalListener implements Listener {
             final Block block = event.getBlock();
             BlockFace facing = Util.getSignFacing(block);
             if (facing == null) return;
-            final Util.AxisAlignment alignment;
+            final Axis axis;
             switch (facing) {
             case EAST:
             case WEST:
@@ -115,7 +116,7 @@ class LinkPortalListener implements Listener {
             case EAST_SOUTH_EAST:
             case WEST_NORTH_WEST:
             case WEST_SOUTH_WEST:
-                alignment = Util.AxisAlignment.Z;
+                axis = Axis.Z;
                 break;
             case NORTH:
             case SOUTH:
@@ -123,11 +124,11 @@ class LinkPortalListener implements Listener {
             case NORTH_NORTH_WEST:
             case SOUTH_SOUTH_EAST:
             case SOUTH_SOUTH_WEST:
-                alignment = Util.AxisAlignment.X;
+                axis = Axis.X;
                 break;
             default: return;
             }
-            Util.createNetherPortal(block, alignment);
+            Util.createNetherPortal(block, axis);
         }
     }
 
@@ -196,8 +197,13 @@ class LinkPortalListener implements Listener {
         Block attachedBlock = null;
         if (action == Action.RIGHT_CLICK_BLOCK) {
             switch (block.getType()) {
+            case ACACIA_BUTTON:
+            case BIRCH_BUTTON:
+            case DARK_OAK_BUTTON:
+            case JUNGLE_BUTTON:
+            case OAK_BUTTON:
+            case SPRUCE_BUTTON:
             case STONE_BUTTON:
-            case WOOD_BUTTON:
                 break;
             default:
                 return;
@@ -206,10 +212,15 @@ class LinkPortalListener implements Listener {
             attachedBlock = block.getRelative(0, 1, 0);
         } else if (action == Action.PHYSICAL) {
             switch (block.getType()) {
-            case STONE_PLATE:
-            case GOLD_PLATE:
-            case IRON_PLATE:
-            case WOOD_PLATE:
+            case ACACIA_PRESSURE_PLATE:
+            case BIRCH_PRESSURE_PLATE:
+            case DARK_OAK_PRESSURE_PLATE:
+            case HEAVY_WEIGHTED_PRESSURE_PLATE:
+            case JUNGLE_PRESSURE_PLATE:
+            case LIGHT_WEIGHTED_PRESSURE_PLATE:
+            case OAK_PRESSURE_PLATE:
+            case SPRUCE_PRESSURE_PLATE:
+            case STONE_PRESSURE_PLATE:
                 if (justTeleportedToPressurePlate.remove(player.getUniqueId())) return;
                 break;
             default:
