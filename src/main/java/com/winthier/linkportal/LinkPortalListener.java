@@ -6,13 +6,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -33,21 +33,19 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.scheduler.BukkitRunnable;
 
-class LinkPortalListener implements Listener {
-    final Map<UUID, Long> cooldowns = new HashMap<>();
+@RequiredArgsConstructor
+final class LinkPortalListener implements Listener {
+    private final LinkPortalPlugin plugin;
+    private final Map<UUID, Long> cooldowns = new HashMap<>();
     final Set<UUID> justTeleportedToPressurePlate = new HashSet<>();
-    final int COOLDOWN = 5;
+    private static final int COOLDOWN = 5;
 
     private boolean isOnCooldown(UUID uuid) {
         Long cooldown = cooldowns.get(uuid);
         long now = System.currentTimeMillis();
-        if (cooldown == null) {
-            return false;
-        } else if (now - cooldown > COOLDOWN * 1000) {
-            return false;
-        } else {
-            return true;
-        }
+        if (cooldown == null) return false;
+        if (now - cooldown > COOLDOWN * 1000) return false;
+        return true;
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
@@ -57,7 +55,7 @@ class LinkPortalListener implements Listener {
         final Location loc = player.getLocation();
         Sign sign = Util.findPortalSignNear(loc);
         if (sign == null) return;
-        Portal portal = LinkPortalPlugin.instance.portals.portalWithSign(sign);
+        Portal portal = plugin.getPortals().portalWithSign(sign);
         if (portal == null) return;
         event.setCancelled(true);
         if (isOnCooldown(player.getUniqueId())) return; // Do this late because we have to cancel the event if it's a Link Portal!
@@ -73,12 +71,12 @@ class LinkPortalListener implements Listener {
         final Location loc = entity.getLocation();
         Sign sign = Util.findPortalSignNear(loc);
         if (sign == null) return;
-        Portal portal = LinkPortalPlugin.instance.portals.portalWithSign(sign);
+        Portal portal = plugin.getPortals().portalWithSign(sign);
         if (portal == null) return;
         event.setCancelled(true);
         portal.entityWalkThroughPortal(entity);
     }
-    
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onSignChange(SignChangeEvent event) {
         final String firstLine = event.getLine(0);
@@ -90,10 +88,10 @@ class LinkPortalListener implements Listener {
                 return;
             }
             Portal portal = Portal.of(player, event.getBlock(), event.getLines());
-            LinkPortalPlugin.instance.portals.addPortal(portal);
-            LinkPortalPlugin.instance.portals.savePortals();
+            plugin.getPortals().addPortal(portal);
+            plugin.getPortals().savePortals();
             String ringName = portal.getRingName();
-            List<Portal> ring = LinkPortalPlugin.instance.portals.ringOfPortal(portal);
+            List<Portal> ring = plugin.getPortals().ringOfPortal(portal);
             String portalWord = ring.size() == 1 ? "Portal" : "Portals";
             if (ringName == null || ringName.isEmpty()) {
                 Util.msg(player, "&3&lLinkPortal&r You created a Link Portal (Ring: %d %s)", ring.size(), portalWord);
@@ -135,7 +133,7 @@ class LinkPortalListener implements Listener {
     private void checkRemovedBlock(final Block block, boolean later) {
         if (!Util.isLinkSign(block)) return;
         Sign sign = (Sign)block.getState();
-        final Portal portal = LinkPortalPlugin.instance.portals.portalWithSign(sign);
+        final Portal portal = plugin.getPortals().portalWithSign(sign);
         if (portal == null) return;
         if (later) {
             new BukkitRunnable() {
@@ -144,15 +142,15 @@ class LinkPortalListener implements Listener {
                         removeBrokenPortal(portal);
                     }
                 }
-            }.runTask(LinkPortalPlugin.instance);
+            }.runTask(plugin);
         } else {
             removeBrokenPortal(portal);
         }
     }
 
     private void removeBrokenPortal(Portal portal) {
-        LinkPortalPlugin.instance.portals.removePortal(portal);
-        LinkPortalPlugin.instance.portals.savePortals();
+        plugin.getPortals().removePortal(portal);
+        plugin.getPortals().savePortals();
         if (portal.getOwnerUuid() == null) return;
         Player player = Bukkit.getServer().getPlayer(portal.getOwnerUuid());
         if (player == null) return;
@@ -233,7 +231,7 @@ class LinkPortalListener implements Listener {
         }
         Sign sign = Util.findAttachedLinkSign(attachedBlock);
         if (sign == null) return;
-        Portal portal = LinkPortalPlugin.instance.portals.portalWithSign(sign);
+        Portal portal = plugin.getPortals().portalWithSign(sign);
         if (portal == null) return;
         if (portal.playerWalkThroughPortal(player)) {
             cooldowns.put(player.getUniqueId(), System.currentTimeMillis());

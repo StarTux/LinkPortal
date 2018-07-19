@@ -8,14 +8,14 @@ import java.util.Map;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-class PortalStorage {
-    YamlConfiguration config = null;
-    final String PATH = "portals.yml";
-    final String LIST = "portals";
+final class PortalStorage {
+    private YamlConfiguration config = null;
+    static final String PATH = "portals.yml";
+    static final String LIST = "portals";
     final ConfigurationSection tmpConfig = new YamlConfiguration();
 
     File getSaveFile() {
-        File folder = LinkPortalPlugin.instance.getDataFolder();
+        File folder = LinkPortalPlugin.getInstance().getDataFolder();
         folder.mkdirs();
         return new File(folder, PATH);
     }
@@ -43,7 +43,7 @@ class PortalStorage {
     }
 
     List<Portal> getPortals() {
-        ConfigurationSection config = getConfig();
+        getConfig();
         List<Portal> result = new ArrayList<>();
         for (Map<?, ?> map: config.getMapList(LIST)) {
             ConfigurationSection section = tmpConfig.createSection("tmp", map);

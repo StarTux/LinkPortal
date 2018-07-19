@@ -15,12 +15,14 @@ import org.bukkit.block.Sign;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 
-public class Util {
-    static final BlockFace[] faces = { BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.UP, BlockFace.DOWN };
-    static final BlockFace[] horizontalFaces = { BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST };
+final class Util {
+    static final BlockFace[] FACES = {BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.UP, BlockFace.DOWN};
+    static final BlockFace[] HORIZONTAL_FACES = {BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST};
     enum PortalBlockType {
         FRAME, PORTAL;
     }
+
+    private Util() { }
 
     private static void checkPortalBlock(final Block block, Set<Block> blocks, Set<Block> checked, PortalBlockType blockType) {
         if (checked.contains(block)) return;
@@ -35,7 +37,7 @@ public class Util {
             if (blockType == PortalBlockType.PORTAL) {
                 blocks.add(block);
             }
-            for (BlockFace face : faces) {
+            for (BlockFace face : FACES) {
                 Block otherBlock = block.getRelative(face);
                 checkPortalBlock(otherBlock, blocks, checked, blockType);
             }
@@ -46,7 +48,7 @@ public class Util {
         Set<Block> blocks = new HashSet<Block>();
         Set<Block> checked = new HashSet<Block>();
         if (block.getType() == Material.NETHER_PORTAL) checkPortalBlock(block, blocks, checked, blockType);
-        for (BlockFace face : faces) {
+        for (BlockFace face : FACES) {
             Block otherBlock = block.getRelative(face);
             if (otherBlock.getType() == Material.NETHER_PORTAL) checkPortalBlock(otherBlock, blocks, checked, blockType);
         }
@@ -55,7 +57,7 @@ public class Util {
 
     static Sign findPortalSignNear(final Set<Block> portalBlocks) {
         for (Block block : portalBlocks) {
-            for (BlockFace face : faces) {
+            for (BlockFace face : FACES) {
                 Block otherBlock = block.getRelative(face);
                 BlockState state = otherBlock.getState();
                 if (state instanceof Sign) {
@@ -109,7 +111,7 @@ public class Util {
     }
 
     static Sign findAttachedLinkSign(Block block) {
-        for (BlockFace dir: horizontalFaces) {
+        for (BlockFace dir: HORIZONTAL_FACES) {
             Block nbor = block.getRelative(dir);
             BlockFace attachedFace = getAttachedFace(nbor);
             if (attachedFace == null) continue;
@@ -136,10 +138,8 @@ public class Util {
                 }
             }
             return true;
-        } else if (blockType.isSolid()) {
-            return true;
         } else {
-            return false;
+            return blockType.isSolid();
         }
     }
 

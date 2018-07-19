@@ -7,10 +7,10 @@ import java.util.List;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 
-public class LinkPortals {
-    final PortalStorage storage = new PortalStorage();
-    List<Portal> portals = null;
-    
+final class LinkPortals {
+    private final PortalStorage storage = new PortalStorage();
+    private List<Portal> portals = null;
+
     public List<Portal> getPortals() {
         if (portals == null) {
             portals = new LinkedList<>();
@@ -51,7 +51,7 @@ public class LinkPortals {
         int y = block.getY();
         int z = block.getZ();
         for (Portal portal: getPortals()) {
-            if (portal.signLocationEquals(worldName, x, y ,z)) return portal;
+            if (portal.signLocationEquals(worldName, x, y, z)) return portal;
         }
         return null;
     }

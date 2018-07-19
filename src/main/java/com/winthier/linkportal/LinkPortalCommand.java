@@ -5,7 +5,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class LinkPortalCommand implements CommandExecutor {
+public final class LinkPortalCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         Player player = sender instanceof Player ? (Player)sender : null;
         // if (args.length == 1 && args[0].equals("import")) {
@@ -19,7 +19,7 @@ public class LinkPortalCommand implements CommandExecutor {
             if (!sender.hasPermission("linkportal.admin")) {
                 return false;
             }
-            LinkPortalPlugin.instance.portals.reload();
+            LinkPortalPlugin.getInstance().getPortals().reload();
             sender.sendMessage("Link portals reloaded.");
             return true;
         }
