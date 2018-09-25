@@ -93,8 +93,12 @@ final class Util {
     }
 
     static BlockFace getSignFacing(Block block) {
-        if (block.getType() != Material.WALL_SIGN) return null;
-        return ((org.bukkit.block.data.type.WallSign)block.getBlockData()).getFacing();
+        if (block.getType() == Material.WALL_SIGN) {
+            return ((org.bukkit.block.data.type.WallSign)block.getBlockData()).getFacing();
+        } else if (block.getType() == Material.SIGN) {
+            return ((org.bukkit.block.data.type.Sign)block.getBlockData()).getRotation();
+        }
+        return null;
     }
 
     static boolean isLinkSign(Block block) {
