@@ -171,13 +171,14 @@ public final class Portal {
     boolean entityWarpToPortal(Entity entity) {
         final Location loc = findWarpLocation();
         if (loc == null) {
-            boolean signIsThere;
-            if (isBlocky()) {
-                LinkPortalPlugin.getInstance().getLogger().info("Deleting portal \"" + ringName + "\" (blocky) of " + ownerName + " (" + ownerUuid + ") at " + describeLocation() + " because portal blocks cannot be found.");
-            } else {
-                LinkPortalPlugin.getInstance().getLogger().info("Deleting portal \"" + ringName + "\" of " + ownerName + " (" + ownerUuid + ") at " + describeLocation() + " because portal blocks cannot be found.");
+            if (!Util.isLinkSign(getSignBlock())) {
+                if (isBlocky()) {
+                    LinkPortalPlugin.getInstance().getLogger().info("Deleting portal \"" + ringName + "\" (blocky) of " + ownerName + " (" + ownerUuid + ") at " + describeLocation() + " because portal blocks cannot be found.");
+                } else {
+                    LinkPortalPlugin.getInstance().getLogger().info("Deleting portal \"" + ringName + "\" of " + ownerName + " (" + ownerUuid + ") at " + describeLocation() + " because portal blocks cannot be found.");
+                }
+                LinkPortalPlugin.getInstance().getPortals().removePortal(this);
             }
-            LinkPortalPlugin.getInstance().getPortals().removePortal(this);
             return false;
         }
         Location eLoc = entity.getLocation();
