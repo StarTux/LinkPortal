@@ -138,7 +138,7 @@ final class LinkPortalListener implements Listener {
         if (later) {
             new BukkitRunnable() {
                 @Override public void run() {
-                    if (block.getType() == Material.AIR) {
+                    if (block.isEmpty()) {
                         removeBrokenPortal(portal);
                     }
                 }

@@ -133,8 +133,7 @@ final class Util {
         if (blocks.size() > 441) return false;
         if (searched.contains(block)) return true;
         searched.add(block);
-        Material blockType = block.getType();
-        if (blockType == Material.AIR) {
+        if (block.isEmpty()) {
             blocks.add(block);
             for (BlockFace face: searchDirections) {
                 if (!checkBlockForPortalCreation(block.getRelative(face), blocks, searched, searchDirections)) {
@@ -143,7 +142,7 @@ final class Util {
             }
             return true;
         } else {
-            return blockType.isSolid();
+            return block.getType().isSolid();
         }
     }
 
