@@ -59,6 +59,13 @@ final class LinkPortalListener implements Listener {
         if (portal == null) return;
         event.setCancelled(true);
         if (isOnCooldown(player.getUniqueId())) return; // Do this late because we have to cancel the event if it's a Link Portal!
+        if (plugin.isDebugMode()) {
+            plugin.getLogger().info("" + event.getEventName() + ":"
+                                    + " " + player.getName()
+                                    + " walk through portal: "
+                                    + portal.debugString()
+                                    + ".");
+        }
         if (portal.playerWalkThroughPortal(player)) {
             cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
             player.setPortalCooldown(COOLDOWN * 20);
@@ -74,6 +81,14 @@ final class LinkPortalListener implements Listener {
         Portal portal = plugin.getPortals().portalWithSign(sign);
         if (portal == null) return;
         event.setCancelled(true);
+        if (plugin.isDebugMode()) {
+            plugin.getLogger().info("" + event.getEventName() + ":"
+                                    + " " + entity.getType().name().toLowerCase()
+                                    + " (" + entity.getUniqueId() + ")"
+                                    + " walk through portal: "
+                                    + portal.debugString()
+                                    + ".");
+        }
         portal.entityWalkThroughPortal(entity);
     }
 
@@ -87,7 +102,7 @@ final class LinkPortalListener implements Listener {
                 event.setCancelled(true);
                 return;
             }
-            Portal portal = Portal.of(player, event.getBlock(), event.getLines());
+            Portal portal = Portal.of(plugin, player, event.getBlock(), event.getLines());
             plugin.getPortals().addPortal(portal);
             plugin.getPortals().savePortals();
             String ringName = portal.getRingName();

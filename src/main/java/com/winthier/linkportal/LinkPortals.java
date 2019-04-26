@@ -8,8 +8,14 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 
 final class LinkPortals {
-    private final PortalStorage storage = new PortalStorage();
+    private LinkPortalPlugin plugin;
+    private final PortalStorage storage;
     private List<Portal> portals = null;
+
+    LinkPortals(LinkPortalPlugin plugin) {
+        this.plugin = plugin;
+        this.storage = new PortalStorage(plugin);
+    }
 
     public List<Portal> getPortals() {
         if (portals == null) {

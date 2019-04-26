@@ -5,17 +5,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+@RequiredArgsConstructor
 final class PortalStorage {
+    private final LinkPortalPlugin plugin;
     private YamlConfiguration config = null;
     static final String PATH = "portals.yml";
     static final String LIST = "portals";
     final ConfigurationSection tmpConfig = new YamlConfiguration();
 
     File getSaveFile() {
-        File folder = LinkPortalPlugin.getInstance().getDataFolder();
+        File folder = plugin.getDataFolder();
         folder.mkdirs();
         return new File(folder, PATH);
     }
@@ -47,7 +50,7 @@ final class PortalStorage {
         List<Portal> result = new ArrayList<>();
         for (Map<?, ?> map: config.getMapList(LIST)) {
             ConfigurationSection section = tmpConfig.createSection("tmp", map);
-            Portal portal = Portal.deserialize(section);
+            Portal portal = Portal.deserialize(plugin, section);
             result.add(portal);
         }
         return result;

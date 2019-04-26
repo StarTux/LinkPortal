@@ -24,6 +24,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 @Value
 @RequiredArgsConstructor
 public final class Portal {
+    final transient LinkPortalPlugin plugin;
     final String signWorld;
     final int signX, signY, signZ;
     final UUID ownerUuid;
@@ -33,7 +34,7 @@ public final class Portal {
     public Block getSignBlock() {
         World world = Bukkit.getServer().getWorld(signWorld);
         if (world == null) {
-            LinkPortalPlugin.getInstance().getLogger().warning("World not found: " + signWorld);
+            plugin.getLogger().warning("World not found: " + signWorld);
             return null;
         }
         return world.getBlockAt(signX, signY, signZ);
@@ -62,11 +63,10 @@ public final class Portal {
                 y = Math.min(y, block.getY());
                 z += block.getZ();
             }
-            return new Location(
-                attachedBlock.getWorld(),
-                (double)x / (double)blocks.size() + 0.5,
-                (double)y,
-                (double)z / (double)blocks.size() + 0.5);
+            return new Location(attachedBlock.getWorld(),
+                                (double)x / (double)blocks.size() + 0.5,
+                                (double)y,
+                                (double)z / (double)blocks.size() + 0.5);
         }
     }
 
@@ -108,7 +108,7 @@ public final class Portal {
         return result;
     }
 
-    static Portal deserialize(ConfigurationSection config) {
+    static Portal deserialize(LinkPortalPlugin plugin, ConfigurationSection config) {
         String signWorld = config.getString("sign.World");
         List<Integer> coordinates = config.getIntegerList("sign.Coordinates");
         int signX = coordinates.get(0);
@@ -117,7 +117,7 @@ public final class Portal {
         UUID ownerUuid = UUID.fromString(config.getString("owner.UUID"));
         String ownerName = config.getString("owner.Name");
         String ringName = config.getString("ring.Name");
-        return new Portal(signWorld, signX, signY, signZ, ownerUuid, ownerName, ringName);
+        return new Portal(plugin, signWorld, signX, signY, signZ, ownerUuid, ownerName, ringName);
     }
 
     static String ringNameOf(String[] lines) {
@@ -128,7 +128,7 @@ public final class Portal {
         return ringNameOf(sign.getLines());
     }
 
-    static Portal of(UUID ownerUuid, Sign sign) {
+    static Portal of(LinkPortalPlugin plugin, UUID ownerUuid, Sign sign) {
         Block block = sign.getBlock();
         String signWorld = block.getWorld().getName();
         int signX = block.getX();
@@ -137,10 +137,10 @@ public final class Portal {
         String ownerName = PlayerCache.nameForUuid(ownerUuid);
         if (ownerName == null) ownerName = "";
         String ringName = ringNameOf(sign);
-        return new Portal(signWorld, signX, signY, signZ, ownerUuid, ownerName, ringName);
+        return new Portal(plugin, signWorld, signX, signY, signZ, ownerUuid, ownerName, ringName);
     }
 
-    static Portal of(Player player, Block block, String[] lines) {
+    static Portal of(LinkPortalPlugin plugin, Player player, Block block, String[] lines) {
         String signWorld = block.getWorld().getName();
         int signX = block.getX();
         int signY = block.getY();
@@ -149,7 +149,7 @@ public final class Portal {
         String ownerName = player.getName();
         if (ownerName == null) ownerName = "";
         String ringName = ringNameOf(lines);
-        return new Portal(signWorld, signX, signY, signZ, ownerUuid, ownerName, ringName);
+        return new Portal(plugin, signWorld, signX, signY, signZ, ownerUuid, ownerName, ringName);
     }
 
     public boolean signLocationEquals(Portal other) {
@@ -171,13 +171,20 @@ public final class Portal {
     boolean entityWarpToPortal(Entity entity) {
         final Location loc = findWarpLocation();
         if (loc == null) {
+            if (plugin.isDebugMode()) {
+                plugin.getLogger().info("Portal.entityWarpToPortal: warpLocation is null");
+            }
             if (!Util.isLinkSign(getSignBlock())) {
                 if (isBlocky()) {
-                    LinkPortalPlugin.getInstance().getLogger().info("Deleting portal \"" + ringName + "\" (blocky) of " + ownerName + " (" + ownerUuid + ") at " + describeLocation() + " because portal blocks cannot be found.");
+                    plugin.getLogger().info("Deleting portal \"" + ringName + "\" (blocky) of " + ownerName + " (" + ownerUuid + ") at " + describeLocation() + " because portal blocks cannot be found.");
                 } else {
-                    LinkPortalPlugin.getInstance().getLogger().info("Deleting portal \"" + ringName + "\" of " + ownerName + " (" + ownerUuid + ") at " + describeLocation() + " because portal blocks cannot be found.");
+                    plugin.getLogger().info("Deleting portal \"" + ringName + "\" of " + ownerName + " (" + ownerUuid + ") at " + describeLocation() + " because portal blocks cannot be found.");
                 }
-                LinkPortalPlugin.getInstance().getPortals().removePortal(this);
+                plugin.getPortals().removePortal(this);
+            } else {
+                if (plugin.isDebugMode()) {
+                    plugin.getLogger().info("Portal.entityWarpToPortal: sign block is not link sign");
+                }
             }
             return false;
         }
@@ -188,7 +195,7 @@ public final class Portal {
             @Override public void run() {
                 entity.teleport(loc);
             }
-        }.runTask(LinkPortalPlugin.getInstance());
+        }.runTask(plugin);
         switch (loc.getBlock().getType()) {
         case ACACIA_PRESSURE_PLATE:
         case BIRCH_PRESSURE_PLATE:
@@ -199,18 +206,26 @@ public final class Portal {
         case OAK_PRESSURE_PLATE:
         case SPRUCE_PRESSURE_PLATE:
         case STONE_PRESSURE_PLATE:
-                if (entity instanceof Player) {
-                    LinkPortalPlugin.getInstance().getListener().justTeleportedToPressurePlate.add(((Player)entity).getUniqueId());
-                }
-                break;
+            if (entity instanceof Player) {
+                plugin.getListener().justTeleportedToPressurePlate.add(((Player)entity).getUniqueId());
+            }
+            break;
         default: break;
         }
         return true;
     }
 
     public boolean entityWalkThroughPortal(Entity entity) {
-        List<Portal> ring = LinkPortalPlugin.getInstance().getPortals().ringOfPortal(this);
-        if (ring == null || ring.isEmpty()) return false;
+        List<Portal> ring = plugin.getPortals().ringOfPortal(this);
+        if (ring == null || ring.isEmpty()) {
+            if (plugin.isDebugMode()) {
+                plugin.getLogger().info("Portal.entityWalkThroughPortal: "
+                                        + (ring == null
+                                           ? "ring is null"
+                                           : "ring is empty"));
+            }
+            return false;
+        }
         int startIndex = ring.indexOf(this);
         for (int i = 1; i < ring.size(); ++i) {
             int index = (startIndex + i) % ring.size();
@@ -240,5 +255,12 @@ public final class Portal {
             Util.msg(player, "&4&lLinkPortal&r &cThis Link Portal has no destination");
         }
         return result;
+    }
+
+    public String debugString() {
+        return "world=" + this.signWorld
+            + " loc=" + this.signX + "," + this.signY + "," + this.signZ
+            + " owner=" + this.ownerName
+            + " ring=" + this.ringName;
     }
 }
