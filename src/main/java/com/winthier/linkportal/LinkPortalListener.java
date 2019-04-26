@@ -52,21 +52,25 @@ final class LinkPortalListener implements Listener {
     public void onPlayerPortal(PlayerPortalEvent event) {
         if (event.getCause() != TeleportCause.NETHER_PORTAL) return;
         final Player player = event.getPlayer();
-        final Location loc = player.getLocation();
-        Sign sign = Util.findPortalSignNear(loc);
-        if (sign == null) return;
+        Sign sign = Util.findPortalSignNearNetherPortal(player);
+        if (sign == null) {
+            return;
+        }
         Portal portal = plugin.getPortals().portalWithSign(sign);
-        if (portal == null) return;
+        if (portal == null) {
+            return;
+        }
         event.setCancelled(true);
         if (isOnCooldown(player.getUniqueId())) return; // Do this late because we have to cancel the event if it's a Link Portal!
+        boolean success = portal.playerWalkThroughPortal(player);
         if (plugin.isDebugMode()) {
             plugin.getLogger().info("" + event.getEventName() + ":"
                                     + " " + player.getName()
                                     + " walk through portal: "
                                     + portal.debugString()
-                                    + ".");
+                                    + " => " + success);
         }
-        if (portal.playerWalkThroughPortal(player)) {
+        if (success) {
             cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
             player.setPortalCooldown(COOLDOWN * 20);
         }
@@ -75,8 +79,7 @@ final class LinkPortalListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void onEntityPortal(EntityPortalEvent event) {
         final Entity entity = event.getEntity();
-        final Location loc = entity.getLocation();
-        Sign sign = Util.findPortalSignNear(loc);
+        Sign sign = Util.findPortalSignNearNetherPortal(entity);
         if (sign == null) return;
         Portal portal = plugin.getPortals().portalWithSign(sign);
         if (portal == null) return;

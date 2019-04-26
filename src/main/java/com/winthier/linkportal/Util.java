@@ -13,6 +13,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 final class Util {
@@ -28,11 +29,6 @@ final class Util {
         if (checked.contains(block)) return;
         checked.add(block);
         Material type = block.getType();
-        if (type.isSolid()) {
-            if (blockType == PortalBlockType.FRAME) {
-                blocks.add(block);
-            }
-        }
         if (type == Material.NETHER_PORTAL) {
             if (blockType == PortalBlockType.PORTAL) {
                 blocks.add(block);
@@ -40,6 +36,10 @@ final class Util {
             for (BlockFace face : FACES) {
                 Block otherBlock = block.getRelative(face);
                 checkPortalBlock(otherBlock, blocks, checked, blockType);
+            }
+        } else if (!block.isEmpty()) {
+            if (blockType == PortalBlockType.FRAME) {
+                blocks.add(block);
             }
         }
     }
@@ -73,8 +73,26 @@ final class Util {
         return findPortalSignNear(findPortalBlocksNear(loc, PortalBlockType.FRAME));
     }
 
-    static Sign findPortalSignNear(final Location loc) {
-        return findPortalSignNear(loc.getBlock());
+    static Sign findPortalSignNearNetherPortal(final Entity ent) {
+        Location entLoc = ent.getLocation();
+        double w = ent.getWidth() * 0.5;
+        double h = ent.getHeight();
+        Block min = entLoc.clone().add(-w, 0, -w).getBlock();
+        Block max = entLoc.clone().add(w, h, w).getBlock();
+        int my = max.getY() - min.getY() + 1;
+        int mx = max.getX() - min.getX() + 1;
+        int mz = max.getZ() - min.getZ() + 1;
+        for (int y = 0; y < my; y += 1) {
+            for (int z = 0; z < mz; z += 1) {
+                for (int x = 0; x < mx; x += 1) {
+                    Block aBlock = min.getRelative(x, y, z);
+                    if (aBlock.getType() == Material.NETHER_PORTAL) {
+                        return findPortalSignNear(aBlock);
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     static String format(String string, Object... args) {
