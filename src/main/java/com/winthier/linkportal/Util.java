@@ -27,6 +27,7 @@ final class Util {
 
     private static void checkPortalBlock(final Block block, Set<Block> blocks, Set<Block> checked, PortalBlockType blockType) {
         if (checked.contains(block)) return;
+        if (checked.size() > 4096) return;
         checked.add(block);
         Material type = block.getType();
         if (type == Material.NETHER_PORTAL) {
