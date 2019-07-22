@@ -106,27 +106,70 @@ final class Util {
         player.sendMessage(format(msg, args));
     }
 
+    static boolean isSign(Block block) {
+        switch (block.getType()) {
+        case ACACIA_SIGN:
+        case ACACIA_WALL_SIGN:
+        case BIRCH_SIGN:
+        case BIRCH_WALL_SIGN:
+        case DARK_OAK_SIGN:
+        case DARK_OAK_WALL_SIGN:
+        case JUNGLE_SIGN:
+        case JUNGLE_WALL_SIGN:
+        case OAK_SIGN:
+        case OAK_WALL_SIGN:
+        case SPRUCE_SIGN:
+        case SPRUCE_WALL_SIGN:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    static boolean isWallSign(Block block) {
+        switch (block.getType()) {
+        case ACACIA_WALL_SIGN:
+        case BIRCH_WALL_SIGN:
+        case DARK_OAK_WALL_SIGN:
+        case JUNGLE_WALL_SIGN:
+        case OAK_WALL_SIGN:
+        case SPRUCE_WALL_SIGN:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    static boolean isSignPost(Block block) {
+        switch (block.getType()) {
+        case ACACIA_SIGN:
+        case BIRCH_SIGN:
+        case DARK_OAK_SIGN:
+        case JUNGLE_SIGN:
+        case OAK_SIGN:
+        case SPRUCE_SIGN:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     static BlockFace getAttachedFace(Block block) {
-        if (block.getType() != Material.WALL_SIGN) return null;
+        if (!isWallSign(block)) return null;
         return ((org.bukkit.block.data.type.WallSign)block.getBlockData()).getFacing().getOppositeFace();
     }
 
     static BlockFace getSignFacing(Block block) {
-        if (block.getType() == Material.WALL_SIGN) {
+        if (isWallSign(block)) {
             return ((org.bukkit.block.data.type.WallSign)block.getBlockData()).getFacing();
-        } else if (block.getType() == Material.SIGN) {
+        } else if (isSignPost(block)) {
             return ((org.bukkit.block.data.type.Sign)block.getBlockData()).getRotation();
         }
         return null;
     }
 
     static boolean isLinkSign(Block block) {
-        switch (block.getType()) {
-        case SIGN:
-        case WALL_SIGN:
-            break;
-        default: return false;
-        }
+        if (!isSign(block)) return false;
         BlockState state = block.getState();
         if (!(state instanceof Sign)) return false;
         Sign sign = (Sign)state;
