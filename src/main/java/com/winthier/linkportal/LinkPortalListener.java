@@ -26,6 +26,7 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
@@ -53,13 +54,9 @@ final class LinkPortalListener implements Listener {
         if (event.getCause() != TeleportCause.NETHER_PORTAL) return;
         final Player player = event.getPlayer();
         Sign sign = Util.findPortalSignNearNetherPortal(player);
-        if (sign == null) {
-            return;
-        }
+        if (sign == null) return;
         Portal portal = plugin.getPortals().portalWithSign(sign);
-        if (portal == null) {
-            return;
-        }
+        if (portal == null) return;
         event.setCancelled(true);
         if (isOnCooldown(player.getUniqueId())) return; // Do this late because we have to cancel the event if it's a Link Portal!
         boolean success = portal.playerWalkThroughPortal(player);
@@ -73,6 +70,34 @@ final class LinkPortalListener implements Listener {
         if (success) {
             cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
             player.setPortalCooldown(COOLDOWN * 20);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onEntityPortalEnter(EntityPortalEnterEvent event) {
+        final Entity entity = event.getEntity();
+        if (entity.getPortalCooldown() > 0) return;
+        Sign sign = Util.findPortalSignNearNetherPortal(entity);
+        if (sign == null) {
+            entity.setPortalCooldown(COOLDOWN * 20);
+            return;
+        }
+        Portal portal = plugin.getPortals().portalWithSign(sign);
+        if (portal == null) {
+            entity.setPortalCooldown(COOLDOWN * 20);
+            return;
+        }
+        if (plugin.isDebugMode()) {
+            plugin.getLogger().info("" + event.getEventName() + ":"
+                                    + " " + entity.getType().name().toLowerCase()
+                                    + " (" + entity.getUniqueId() + ")"
+                                    + " walk through portal: "
+                                    + portal.debugString()
+                                    + ".");
+        }
+        boolean success = portal.entityWalkThroughPortal(entity);
+        if (success) {
+            entity.setPortalCooldown(COOLDOWN * 20);
         }
     }
 
@@ -92,7 +117,10 @@ final class LinkPortalListener implements Listener {
                                     + portal.debugString()
                                     + ".");
         }
-        portal.entityWalkThroughPortal(entity);
+        boolean success = portal.entityWalkThroughPortal(entity);
+        if (success) {
+            entity.setPortalCooldown(COOLDOWN * 20);
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
