@@ -76,6 +76,7 @@ final class LinkPortalListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onEntityPortalEnter(EntityPortalEnterEvent event) {
         final Entity entity = event.getEntity();
+        if (entity instanceof Player) return;
         if (entity.getPortalCooldown() > 0) return;
         Sign sign = Util.findPortalSignNearNetherPortal(entity);
         if (sign == null) {
