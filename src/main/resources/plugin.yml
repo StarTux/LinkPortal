@@ -9,7 +9,8 @@ depend: [PlayerCache]
 commands:
   LinkPortal:
     description: Admin interface
-    usage: /<command> Reload - Reload the configuration files.
+    usage: |-
+      /linkportal list - List your link portals
     permission: linkportal.linkportal
 permissions:
   linkportal.linkportal:
