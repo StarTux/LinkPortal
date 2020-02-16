@@ -1,6 +1,7 @@
 package com.winthier.linkportal;
 
 import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -10,7 +11,7 @@ public final class LinkPortalPlugin extends JavaPlugin {
     private final LinkPortalListener listener = new LinkPortalListener(this);
     private final LinkPortals portals = new LinkPortals(this);
     private boolean debugMode;
-    HashSet<UUID> serverPortal = new HashSet<>();
+    Set<UUID> serverPortal = new HashSet<>();
 
     @Override
     public void onEnable() {
@@ -18,6 +19,7 @@ public final class LinkPortalPlugin extends JavaPlugin {
         loadConf();
         getServer().getPluginManager().registerEvents(listener, this);
         getCommand("linkportal").setExecutor(new LinkPortalCommand(this));
+        getServer().getScheduler().runTaskTimer(this, listener::tick, 1L, 1L);
     }
 
     void loadConf() {

@@ -5,7 +5,8 @@ version: 0.1
 website: http://cavetale.com
 api-version: 1.13
 main: com.winthier.linkportal.LinkPortalPlugin
-depend: [PlayerCache]
+depend: []
+softdepend: []
 commands:
   LinkPortal:
     description: Admin interface

@@ -25,12 +25,16 @@ final class Util {
 
     private Util() { }
 
+    /**
+     * Helper function for findPortalBlocksNear().
+     */
     private static void checkPortalBlock(final Block block, Set<Block> blocks, Set<Block> checked, PortalBlockType blockType) {
         if (checked.contains(block)) return;
         if (checked.size() > 4096) return;
         checked.add(block);
         Material type = block.getType();
-        if (type == Material.NETHER_PORTAL) {
+        if (type == Material.NETHER_PORTAL
+            || type == Material.END_GATEWAY) {
             if (blockType == PortalBlockType.PORTAL) {
                 blocks.add(block);
             }
@@ -45,13 +49,21 @@ final class Util {
         }
     }
 
+    /**
+     * Flood fill to find all portal blocks, or the frames around them.
+     */
     static Set<Block> findPortalBlocksNear(final Block block, PortalBlockType blockType) {
         Set<Block> blocks = new HashSet<Block>();
         Set<Block> checked = new HashSet<Block>();
-        if (block.getType() == Material.NETHER_PORTAL) checkPortalBlock(block, blocks, checked, blockType);
+        if (block.getType() == Material.NETHER_PORTAL || block.getType() == Material.END_GATEWAY) {
+            checkPortalBlock(block, blocks, checked, blockType);
+        }
         for (BlockFace face : FACES) {
             Block otherBlock = block.getRelative(face);
-            if (otherBlock.getType() == Material.NETHER_PORTAL) checkPortalBlock(otherBlock, blocks, checked, blockType);
+            Material otherMat = otherBlock.getType();
+            if (otherMat == Material.NETHER_PORTAL || otherMat == Material.END_GATEWAY) {
+                checkPortalBlock(otherBlock, blocks, checked, blockType);
+            }
         }
         return blocks;
     }
@@ -74,6 +86,10 @@ final class Util {
         return findPortalSignNear(findPortalBlocksNear(loc, PortalBlockType.FRAME));
     }
 
+    /**
+     * Scan the entity hitbox for overlapping nether portal blocks,
+     * then find a link sign.
+     */
     static Sign findPortalSignNearNetherPortal(final Entity ent) {
         Location entLoc = ent.getLocation();
         double w = ent.getWidth() * 0.5;

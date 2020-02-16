@@ -40,6 +40,13 @@ final class LinkPortalListener implements Listener {
     private final Map<UUID, Long> cooldowns = new HashMap<>();
     final Set<UUID> justTeleportedToPressurePlate = new HashSet<>();
     private static final int COOLDOWN = 5;
+    Map<UUID, Session> sessions = new HashMap<>();
+
+    final class Session {
+        int x;
+        int y;
+        int z;
+    }
 
     private boolean isOnCooldown(UUID uuid) {
         Long cooldown = cooldowns.get(uuid);
@@ -58,12 +65,61 @@ final class LinkPortalListener implements Listener {
         Portal portal = plugin.getPortals().portalWithSign(sign);
         if (portal == null) return;
         event.setCancelled(true);
-        if (isOnCooldown(player.getUniqueId())) return; // Do this late because we have to cancel the event if it's a Link Portal!
+        // Do this late because we have to cancel the event if it's a
+        // Link Portal!
+        if (isOnCooldown(player.getUniqueId())) return;
         boolean success = portal.playerWalkThroughPortal(player);
         if (plugin.isDebugMode()) {
             plugin.getLogger().info("" + event.getEventName() + ":"
                                     + " " + player.getName()
-                                    + " walk through portal: "
+                                    + " walk through nether portal: "
+                                    + portal.debugString()
+                                    + " => " + success);
+        }
+        if (success) {
+            cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
+            player.setPortalCooldown(COOLDOWN * 20);
+        }
+    }
+
+    void tick() {
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            UUID uuid = player.getUniqueId();
+            Session session = sessions.get(uuid);
+            if (session == null) {
+                session = new Session();
+                sessions.put(uuid, session);
+            }
+            Location loc = player.getLocation();
+            final int x = loc.getBlockX();
+            final int y = loc.getBlockY();
+            final int z = loc.getBlockZ();
+            if (x != session.x || y != session.y || z != session.z) {
+                session.x = x;
+                session.y = y;
+                session.z = z;
+                Block block = loc.getBlock();
+                if (block.getType() == Material.END_GATEWAY) {
+                    onPlayerEndGateway(player, block);
+                }
+            }
+        }
+    }
+
+    /**
+     * Called by LinkPortalPlugin::tick.
+     */
+    public void onPlayerEndGateway(Player player, Block block) {
+        Sign sign = Util.findPortalSignNear(block);
+        if (sign == null) return;
+        Portal portal = plugin.getPortals().portalWithSign(sign);
+        if (portal == null) return;
+        if (isOnCooldown(player.getUniqueId())) return;
+        boolean success = portal.playerWalkThroughPortal(player);
+        if (plugin.isDebugMode()) {
+            plugin.getLogger().info("onPlayerEndGateway:"
+                                    + " " + player.getName()
+                                    + " walk through end gateway: "
                                     + portal.debugString()
                                     + " => " + success);
         }
@@ -149,12 +205,15 @@ final class LinkPortalListener implements Listener {
             List<Portal> ring = plugin.getPortals().ringOfPortal(portal);
             String portalWord = ring.size() == 1 ? "Portal" : "Portals";
             if (ringName == null || ringName.isEmpty()) {
-                Util.msg(player, "&3&lLinkPortal&r You created a Link Portal (Ring: %d %s)", ring.size(), portalWord);
+                Util.msg(player, "&3&lLinkPortal&r You created a Link Portal (Ring: %d %s)",
+                         ring.size(), portalWord);
             } else {
-                Util.msg(player, "&3&lLinkPortal&r You created a Link Portal (\"%s\": %d %s)", ringName, ring.size(), portalWord);
+                Util.msg(player, "&3&lLinkPortal&r You created a Link Portal (\"%s\": %d %s)",
+                         ringName, ring.size(), portalWord);
             }
             if (adminPortal) {
-                Util.msg(player, "&eCreated as server portal. Server portal creation now disabled.");
+                Util.msg(player, "&eCreated as server portal."
+                         + " Server portal creation now disabled.");
             }
             event.setLine(0, Util.format("[&5&lLink&r]"));
             player.sendTitle("", Util.format("&aLink Portal created"));
@@ -190,7 +249,7 @@ final class LinkPortalListener implements Listener {
 
     private void checkRemovedBlock(final Block block, boolean later) {
         if (!Util.isLinkSign(block)) return;
-        Sign sign = (Sign)block.getState();
+        Sign sign = (Sign) block.getState();
         final Portal portal = plugin.getPortals().portalWithSign(sign);
         if (portal == null) return;
         if (later) {
@@ -301,12 +360,15 @@ final class LinkPortalListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCreatureSpawn(CreatureSpawnEvent event) {
         if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.NETHER_PORTAL) return;
-        if (event.getEntity().getLocation().getBlock().getRelative(0, -1, 0).getType() == Material.OBSIDIAN) return;
+        final Block block = event.getEntity().getLocation().getBlock().getRelative(0, -1, 0);
+        if (block.getType() == Material.OBSIDIAN) return;
         event.setCancelled(true);
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        cooldowns.remove(event.getPlayer().getUniqueId());
+        final UUID uuid = event.getPlayer().getUniqueId();
+        cooldowns.remove(uuid);
+        sessions.remove(uuid);
     }
 }
