@@ -1,20 +1,26 @@
 package com.winthier.linkportal;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
 @RequiredArgsConstructor
-public final class LinkPortalCommand implements CommandExecutor {
+public final class LinkPortalCommand implements TabExecutor {
     private final LinkPortalPlugin plugin;
 
+    @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 0) return false;
         Player player = sender instanceof Player ? (Player)sender : null;
         if (args.length == 1 && args[0].equals("reload")) {
             if (!sender.hasPermission("linkportal.admin")) {
@@ -70,7 +76,26 @@ public final class LinkPortalCommand implements CommandExecutor {
                 }
             }
             return true;
+        } else {
+            return false;
         }
-        return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command,
+                                      String label, String[] args) {
+        if (args.length == 0) return null;
+        String arg = args[args.length - 1];
+        if (args.length == 1) {
+            if (sender.hasPermission("linkportal.admin")) {
+                return Stream.of("list", "reload", "server")
+                    .filter(s -> s.startsWith(arg))
+                    .collect(Collectors.toList());
+            }                
+            return Stream.of("list")
+                .filter(s -> s.startsWith(arg))
+                .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 }
