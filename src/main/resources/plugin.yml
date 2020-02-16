@@ -11,6 +11,8 @@ commands:
     description: Admin interface
     usage: |-
       /linkportal list - List your link portals
+      /linkportal reload - Reload (admins)
+      /linkportal server - Make server portal (admins)
     permission: linkportal.linkportal
 permissions:
   linkportal.linkportal:

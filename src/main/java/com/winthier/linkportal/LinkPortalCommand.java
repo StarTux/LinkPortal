@@ -24,6 +24,22 @@ public final class LinkPortalCommand implements CommandExecutor {
             plugin.loadConf();
             sender.sendMessage("Link portals and config reloaded.");
             return true;
+        } else if (args.length == 1 && args[0].equals("server")) {
+            if (player == null) {
+                sender.sendMessage("Player expected");
+                return true;
+            }
+            if (!player.hasPermission("linkportal.admin")) {
+                return false;
+            }
+            UUID uuid = player.getUniqueId();
+            if (plugin.serverPortal.remove(uuid)) {
+                player.sendMessage(ChatColor.YELLOW + "Server portal creation disabled.");
+            } else {
+                plugin.serverPortal.add(uuid);
+                player.sendMessage(ChatColor.YELLOW + "Server portal creation enabled.");
+            }
+            return true;
         } else if (args.length == 1 && args[0].equals("list")) {
             if (player == null) return false;
             UUID uuid = player.getUniqueId();

@@ -30,6 +30,7 @@ public final class Portal {
     final UUID ownerUuid;
     final String ownerName;
     final String ringName;
+    static final UUID SERVER_UUID = new UUID(0L, 0L);
 
     public Block getSignBlock() {
         World world = Bukkit.getServer().getWorld(signWorld);
@@ -128,18 +129,6 @@ public final class Portal {
         return ringNameOf(sign.getLines());
     }
 
-    static Portal of(LinkPortalPlugin plugin, UUID ownerUuid, Sign sign) {
-        Block block = sign.getBlock();
-        String signWorld = block.getWorld().getName();
-        int signX = block.getX();
-        int signY = block.getY();
-        int signZ = block.getZ();
-        String ownerName = PlayerCache.nameForUuid(ownerUuid);
-        if (ownerName == null) ownerName = "";
-        String ringName = ringNameOf(sign);
-        return new Portal(plugin, signWorld, signX, signY, signZ, ownerUuid, ownerName, ringName);
-    }
-
     static Portal of(LinkPortalPlugin plugin, Player player, Block block, String[] lines) {
         String signWorld = block.getWorld().getName();
         int signX = block.getX();
@@ -147,6 +136,18 @@ public final class Portal {
         int signZ = block.getZ();
         UUID ownerUuid = player.getUniqueId();
         String ownerName = player.getName();
+        if (ownerName == null) ownerName = "";
+        String ringName = ringNameOf(lines);
+        return new Portal(plugin, signWorld, signX, signY, signZ, ownerUuid, ownerName, ringName);
+    }
+
+    static Portal of(LinkPortalPlugin plugin, Block block, String[] lines) {
+        String signWorld = block.getWorld().getName();
+        int signX = block.getX();
+        int signY = block.getY();
+        int signZ = block.getZ();
+        UUID ownerUuid = SERVER_UUID;
+        String ownerName = "The Server";
         if (ownerName == null) ownerName = "";
         String ringName = ringNameOf(lines);
         return new Portal(plugin, signWorld, signX, signY, signZ, ownerUuid, ownerName, ringName);

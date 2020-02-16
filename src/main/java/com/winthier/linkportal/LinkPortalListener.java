@@ -134,7 +134,15 @@ final class LinkPortalListener implements Listener {
                 event.setCancelled(true);
                 return;
             }
-            Portal portal = Portal.of(plugin, player, event.getBlock(), event.getLines());
+            Portal portal;
+            boolean adminPortal;
+            if (plugin.serverPortal.remove(player.getUniqueId())) {
+                adminPortal = true;
+                portal = Portal.of(plugin, event.getBlock(), event.getLines());
+            } else {
+                adminPortal = false;
+                portal = Portal.of(plugin, player, event.getBlock(), event.getLines());
+            }
             plugin.getPortals().addPortal(portal);
             plugin.getPortals().savePortals();
             String ringName = portal.getRingName();
@@ -144,6 +152,9 @@ final class LinkPortalListener implements Listener {
                 Util.msg(player, "&3&lLinkPortal&r You created a Link Portal (Ring: %d %s)", ring.size(), portalWord);
             } else {
                 Util.msg(player, "&3&lLinkPortal&r You created a Link Portal (\"%s\": %d %s)", ringName, ring.size(), portalWord);
+            }
+            if (adminPortal) {
+                Util.msg(player, "&eCreated as server portal. Server portal creation now disabled.");
             }
             event.setLine(0, Util.format("[&5&lLink&r]"));
             player.sendTitle("", Util.format("&aLink Portal created"));
