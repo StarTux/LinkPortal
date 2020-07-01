@@ -11,6 +11,7 @@ import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
@@ -321,6 +322,7 @@ final class LinkPortalListener implements Listener {
             case STONE_BUTTON:
                 break;
             default:
+                if (Tag.BUTTONS.isTagged(block.getType())) break;
                 return;
             }
             if (!player.getLocation().getBlock().equals(block.getRelative(0, -1, 0))) return;
@@ -339,6 +341,7 @@ final class LinkPortalListener implements Listener {
                 if (justTeleportedToPressurePlate.remove(player.getUniqueId())) return;
                 break;
             default:
+                if (Tag.PRESSURE_PLATES.isTagged(block.getType())) break;
                 return;
             }
             if (isOnCooldown(player.getUniqueId())) return;
