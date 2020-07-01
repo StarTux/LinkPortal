@@ -8,6 +8,7 @@ import org.bukkit.Axis;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -138,7 +139,7 @@ final class Util {
         case SPRUCE_WALL_SIGN:
             return true;
         default:
-            return false;
+            return Tag.SIGNS.isTagged(block.getType());
         }
     }
 
@@ -152,7 +153,7 @@ final class Util {
         case SPRUCE_WALL_SIGN:
             return true;
         default:
-            return false;
+            return Tag.WALL_SIGNS.isTagged(block.getType());
         }
     }
 
@@ -166,7 +167,7 @@ final class Util {
         case SPRUCE_SIGN:
             return true;
         default:
-            return false;
+            return Tag.STANDING_SIGNS.isTagged(block.getType());
         }
     }
 
