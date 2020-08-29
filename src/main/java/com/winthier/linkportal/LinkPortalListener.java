@@ -24,6 +24,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
@@ -244,8 +245,22 @@ final class LinkPortalListener implements Listener {
                 break;
             default: return;
             }
-            Util.createNetherPortal(block, axis);
+            Util.createNetherPortal(block, axis, b -> b.getType().isSolid(), 441);
         }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    void onBlockPlace(BlockPlaceEvent event) {
+        Block block = event.getBlock();
+        if (block.getType() != Material.FIRE) return;
+        if (event.getBlockAgainst().getType() != Material.CRYING_OBSIDIAN) return;
+        Player player = event.getPlayer();
+        if (!player.hasPermission("linkportal.create")) return;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+                if (!Util.createNetherPortal(block, Axis.X, b -> b.getType() == Material.CRYING_OBSIDIAN, 441)) {
+                    Util.createNetherPortal(block, Axis.Z, b -> b.getType() == Material.CRYING_OBSIDIAN, 441);
+                }
+            });
     }
 
     private void checkRemovedBlock(final Block block, boolean later) {

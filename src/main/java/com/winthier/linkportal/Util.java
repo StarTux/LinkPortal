@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import org.bukkit.Axis;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -208,24 +209,24 @@ final class Util {
         return null;
     }
 
-    private static boolean checkBlockForPortalCreation(final Block block, Set<Block> blocks, Set<Block> searched, List<BlockFace> searchDirections) {
-        if (blocks.size() > 441) return false;
+    private static boolean checkBlockForPortalCreation(final Block block, Set<Block> blocks, Set<Block> searched, List<BlockFace> searchDirections, Function<Block, Boolean> frameChecker, int maxSize) {
+        if (blocks.size() > maxSize) return false;
         if (searched.contains(block)) return true;
         searched.add(block);
         if (block.isEmpty()) {
             blocks.add(block);
             for (BlockFace face: searchDirections) {
-                if (!checkBlockForPortalCreation(block.getRelative(face), blocks, searched, searchDirections)) {
+                if (!checkBlockForPortalCreation(block.getRelative(face), blocks, searched, searchDirections, frameChecker, maxSize)) {
                     return false;
                 }
             }
             return true;
         } else {
-            return block.getType().isSolid();
+            return frameChecker.apply(block);
         }
     }
 
-    static boolean createNetherPortal(Block block, Axis axis) {
+    static boolean createNetherPortal(Block block, Axis axis, Function<Block, Boolean> frameChecker, int maxSize) {
         final List<BlockFace> searchDirections;
         final List<BlockFace> alternateDirections;
         switch (axis) {
@@ -245,7 +246,7 @@ final class Util {
         blocks.add(block);
         searched.add(block);
         for (BlockFace face: searchDirections) {
-            if (!checkBlockForPortalCreation(block.getRelative(face), blocks, searched, searchDirections)) {
+            if (!checkBlockForPortalCreation(block.getRelative(face), blocks, searched, searchDirections, frameChecker, maxSize)) {
                 return false;
             }
         }
