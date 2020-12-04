@@ -25,7 +25,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 public final class Portal {
     final transient LinkPortalPlugin plugin;
     final String signWorld;
-    final int signX, signY, signZ;
+    final int signX;
+    final int signY;
+    final int signZ;
     final UUID ownerUuid;
     final String ownerName;
     final String ringName;
@@ -57,16 +59,18 @@ public final class Portal {
             if (attachedBlock == null) return null;
             Set<Block> blocks = Util.findPortalBlocksNear(attachedBlock, Util.PortalBlockType.PORTAL);
             if (blocks == null || blocks.isEmpty()) return null;
-            int x = 0, y = Integer.MAX_VALUE, z = 0;
+            int x = 0;
+            int y = Integer.MAX_VALUE;
+            int z = 0;
             for (Block block: blocks) {
                 x += block.getX();
                 y = Math.min(y, block.getY());
                 z += block.getZ();
             }
             return new Location(attachedBlock.getWorld(),
-                                (double)x / (double)blocks.size() + 0.5,
-                                (double)y,
-                                (double)z / (double)blocks.size() + 0.5);
+                                (double) x / (double) blocks.size() + 0.5,
+                                (double) y,
+                                (double) z / (double) blocks.size() + 0.5);
         }
     }
 
@@ -176,9 +180,11 @@ public final class Portal {
             }
             if (!Util.isLinkSign(getSignBlock())) {
                 if (isBlocky()) {
-                    plugin.getLogger().info("Deleting portal \"" + ringName + "\" (blocky) of " + ownerName + " (" + ownerUuid + ") at " + describeLocation() + " because portal blocks cannot be found.");
+                    plugin.getLogger().info("Deleting portal \"" + ringName + "\" (blocky) of " + ownerName
+                                            + " (" + ownerUuid + ") at " + describeLocation() + " because portal blocks cannot be found.");
                 } else {
-                    plugin.getLogger().info("Deleting portal \"" + ringName + "\" of " + ownerName + " (" + ownerUuid + ") at " + describeLocation() + " because portal blocks cannot be found.");
+                    plugin.getLogger().info("Deleting portal \"" + ringName + "\" of " + ownerName
+                                            + " (" + ownerUuid + ") at " + describeLocation() + " because portal blocks cannot be found.");
                 }
                 plugin.getPortals().removePortal(this);
             } else {
@@ -207,7 +213,7 @@ public final class Portal {
         case SPRUCE_PRESSURE_PLATE:
         case STONE_PRESSURE_PLATE:
             if (entity instanceof Player) {
-                plugin.getListener().justTeleportedToPressurePlate.add(((Player)entity).getUniqueId());
+                plugin.getListener().justTeleportedToPressurePlate.add(((Player) entity).getUniqueId());
             }
             break;
         default: break;

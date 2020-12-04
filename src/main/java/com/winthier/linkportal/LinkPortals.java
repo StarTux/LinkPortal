@@ -12,7 +12,7 @@ final class LinkPortals {
     private final PortalStorage storage;
     private List<Portal> portals = null;
 
-    LinkPortals(LinkPortalPlugin plugin) {
+    LinkPortals(final LinkPortalPlugin plugin) {
         this.plugin = plugin;
         this.storage = new PortalStorage(plugin);
     }

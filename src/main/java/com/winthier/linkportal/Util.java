@@ -76,7 +76,7 @@ final class Util {
                 Block otherBlock = block.getRelative(face);
                 BlockState state = otherBlock.getState();
                 if (state instanceof Sign) {
-                    Sign sign = (Sign)state;
+                    Sign sign = (Sign) state;
                     if (signHasLinkTag(sign)) return sign;
                 }
             }
@@ -174,14 +174,14 @@ final class Util {
 
     static BlockFace getAttachedFace(Block block) {
         if (!isWallSign(block)) return null;
-        return ((org.bukkit.block.data.type.WallSign)block.getBlockData()).getFacing().getOppositeFace();
+        return ((org.bukkit.block.data.type.WallSign) block.getBlockData()).getFacing().getOppositeFace();
     }
 
     static BlockFace getSignFacing(Block block) {
         if (isWallSign(block)) {
-            return ((org.bukkit.block.data.type.WallSign)block.getBlockData()).getFacing();
+            return ((org.bukkit.block.data.type.WallSign) block.getBlockData()).getFacing();
         } else if (isSignPost(block)) {
-            return ((org.bukkit.block.data.type.Sign)block.getBlockData()).getRotation();
+            return ((org.bukkit.block.data.type.Sign) block.getBlockData()).getRotation();
         }
         return null;
     }
@@ -190,7 +190,7 @@ final class Util {
         if (!isSign(block)) return false;
         BlockState state = block.getState();
         if (!(state instanceof Sign)) return false;
-        Sign sign = (Sign)state;
+        Sign sign = (Sign) state;
         return signHasLinkTag(sign);
     }
 
@@ -202,14 +202,16 @@ final class Util {
             if (attachedFace != dir.getOppositeFace()) continue;
             BlockState state = nbor.getState();
             if (!(state instanceof Sign)) continue;
-            Sign sign = (Sign)state;
+            Sign sign = (Sign) state;
             if (!signHasLinkTag(sign)) continue;
             return sign;
         }
         return null;
     }
 
-    private static boolean checkBlockForPortalCreation(final Block block, Set<Block> blocks, Set<Block> searched, List<BlockFace> searchDirections, Function<Block, Boolean> frameChecker, int maxSize) {
+    private static boolean checkBlockForPortalCreation(final Block block,
+                                                       Set<Block> blocks, Set<Block> searched, List<BlockFace> searchDirections,
+                                                       Function<Block, Boolean> frameChecker, int maxSize) {
         if (blocks.size() > maxSize) return false;
         if (searched.contains(block)) return true;
         searched.add(block);
@@ -257,7 +259,7 @@ final class Util {
             }
         }
         BlockData portalData = Material.NETHER_PORTAL.createBlockData();
-        ((org.bukkit.block.data.Orientable)portalData).setAxis(axis);
+        ((org.bukkit.block.data.Orientable) portalData).setAxis(axis);
         for (Block portal: blocks) {
             portal.setBlockData(portalData, false);
         }

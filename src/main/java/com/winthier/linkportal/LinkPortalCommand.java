@@ -21,7 +21,7 @@ public final class LinkPortalCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) return false;
-        Player player = sender instanceof Player ? (Player)sender : null;
+        Player player = sender instanceof Player ? (Player) sender : null;
         if (args.length == 1 && args[0].equals("reload")) {
             if (!sender.hasPermission("linkportal.admin")) {
                 return false;
@@ -61,10 +61,10 @@ public final class LinkPortalCommand implements TabExecutor {
             if (map.isEmpty()) {
                 player.sendMessage(ChatColor.RED + "You don't have any portals");
             } else {
-                player.sendMessage(ChatColor.YELLOW + "Listing " +
-                                   (map.size() == 1
-                                    ? "1 Portal Ring:"
-                                    : map.size() + " Portal Rings:"));
+                player.sendMessage(ChatColor.YELLOW + "Listing "
+                                   + (map.size() == 1
+                                      ? "1 Portal Ring:"
+                                      : map.size() + " Portal Rings:"));
                 for (Map.Entry<String, Integer> entry : map.entrySet()) {
                     String name = entry.getKey();
                     int count = entry.getValue();
@@ -91,7 +91,7 @@ public final class LinkPortalCommand implements TabExecutor {
                 return Stream.of("list", "reload", "server")
                     .filter(s -> s.startsWith(arg))
                     .collect(Collectors.toList());
-            }                
+            }
             return Stream.of("list")
                 .filter(s -> s.startsWith(arg))
                 .collect(Collectors.toList());
