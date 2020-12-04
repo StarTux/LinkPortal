@@ -28,3 +28,6 @@ permissions:
   linkportal.admin:
     description: Do admin stuff
     default: op
+  linkportal.use:
+    description: Use a link portal.
+    default: op

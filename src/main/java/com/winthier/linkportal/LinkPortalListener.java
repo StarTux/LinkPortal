@@ -70,6 +70,7 @@ final class LinkPortalListener implements Listener {
         // Do this late because we have to cancel the event if it's a
         // Link Portal!
         if (isOnCooldown(player.getUniqueId())) return;
+        if (!player.hasPermission("linkportal.use")) return;
         boolean success = portal.playerWalkThroughPortal(player);
         if (plugin.isDebugMode()) {
             plugin.getLogger().info("" + event.getEventName() + ":"
@@ -109,7 +110,7 @@ final class LinkPortalListener implements Listener {
     }
 
     /**
-     * Called by LinkPortalPlugin::tick.
+     * Called by tick().
      */
     public void onPlayerEndGateway(Player player, Block block) {
         Sign sign = Util.findPortalSignNear(block);
@@ -117,6 +118,7 @@ final class LinkPortalListener implements Listener {
         Portal portal = plugin.getPortals().portalWithSign(sign);
         if (portal == null) return;
         if (isOnCooldown(player.getUniqueId())) return;
+        if (!player.hasPermission("linkportal.use")) return;
         boolean success = portal.playerWalkThroughPortal(player);
         if (plugin.isDebugMode()) {
             plugin.getLogger().info("onPlayerEndGateway:"
@@ -368,6 +370,7 @@ final class LinkPortalListener implements Listener {
         if (sign == null) return;
         Portal portal = plugin.getPortals().portalWithSign(sign);
         if (portal == null) return;
+        if (!player.hasPermission("linkportal.use")) return;
         if (portal.playerWalkThroughPortal(player)) {
             cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
             event.setCancelled(true);
