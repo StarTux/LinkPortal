@@ -1,13 +1,18 @@
+main: com.winthier.linkportal.LinkPortalPlugin
 name: LinkPortal
+
+version: 0.1
+api-version: 1.17
+
 description: Link parallel worlds via nether portals
 author: StarTux
-version: 0.1
 website: http://cavetale.com
-api-version: 1.13
-main: com.winthier.linkportal.LinkPortalPlugin
-depend: []
+
+depend: [Core]
 softdepend: []
+
 commands:
+
   LinkPortal:
     description: Admin interface
     usage: |-
@@ -15,6 +20,7 @@ commands:
       /linkportal reload - Reload (admins)
       /linkportal server - Make server portal (admins)
     permission: linkportal.linkportal
+
 permissions:
   linkportal.linkportal:
     description: Use the "/linkportal" command

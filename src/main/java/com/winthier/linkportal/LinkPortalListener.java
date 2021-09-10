@@ -1,5 +1,7 @@
 package com.winthier.linkportal;
 
+import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
+import com.cavetale.core.event.player.PluginPlayerEvent;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -221,6 +223,8 @@ final class LinkPortalListener implements Listener {
             }
             event.setLine(0, Util.format("[&5&lLink&r]"));
             player.sendTitle("", Util.format("&aLink Portal created"));
+            PluginPlayerEvent.Name.MAKE_LINK_PORTAL.ultimate(plugin, player)
+                .detail(Detail.COUNT, ring.size()).call();
         } else if (firstLine.equalsIgnoreCase("[portal]")) {
             event.setCancelled(true);
             if (!event.getPlayer().hasPermission("linkportal.portal")) return;
