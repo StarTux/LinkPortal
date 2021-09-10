@@ -1,5 +1,7 @@
 package com.winthier.linkportal;
 
+import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
+import com.cavetale.core.event.player.PluginPlayerEvent;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -257,6 +259,9 @@ public final class Portal {
                 }
             }
             Util.msg(player, "&3&lLinkPortal&r You enter &a%s&r Link Portal &a%s", displayName, ringName);
+            PluginPlayerEvent.Name.LINK_PORTAL_TRAVEL.ultimate(plugin, player)
+                .detail(Detail.NAME, ringName)
+                .call();
         } else {
             Util.msg(player, "&4&lLinkPortal&r &cThis Link Portal has no destination");
         }
