@@ -260,6 +260,7 @@ public final class Portal {
             }
             Util.msg(player, "&3&lLinkPortal&r You enter &a%s&r Link Portal &a%s", displayName, ringName);
             PluginPlayerEvent.Name.LINK_PORTAL_TRAVEL.ultimate(plugin, player)
+                .detail(Detail.OWNER, ownerUuid)
                 .detail(Detail.NAME, ringName)
                 .call();
         } else {
