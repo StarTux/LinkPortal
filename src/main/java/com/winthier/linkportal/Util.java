@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Axis;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -273,6 +274,7 @@ final class Util {
 
     static boolean signHasLinkTag(Sign sign) {
         if (sign == null) return false;
-        return isLinkTag(sign.getLine(0));
+        String line = PlainTextComponentSerializer.plainText().serialize(sign.line(0));
+        return isLinkTag(line);
     }
 }

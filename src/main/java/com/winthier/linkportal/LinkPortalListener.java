@@ -2,6 +2,7 @@ package com.winthier.linkportal;
 
 import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
 import com.cavetale.core.event.player.PluginPlayerEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -9,6 +10,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Axis;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -188,8 +194,11 @@ final class LinkPortalListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onSignChange(SignChangeEvent event) {
-        final String firstLine = event.getLine(0);
-        if (Util.isLinkTag(firstLine)) {
+        List<String> lines = new ArrayList<>(4);
+        for (Component line : event.lines()) {
+            lines.add(PlainTextComponentSerializer.plainText().serialize(line));
+        }
+        if (Util.isLinkTag(lines.get(0))) {
             final Player player = event.getPlayer();
             if (!player.hasPermission("linkportal.create")) {
                 Util.msg(player, "&4&lLinkPortal&r &cYou don't have permission!");
@@ -200,10 +209,10 @@ final class LinkPortalListener implements Listener {
             boolean adminPortal;
             if (plugin.serverPortal.remove(player.getUniqueId())) {
                 adminPortal = true;
-                portal = Portal.of(plugin, event.getBlock(), event.getLines());
+                portal = Portal.of(plugin, event.getBlock(), lines);
             } else {
                 adminPortal = false;
-                portal = Portal.of(plugin, player, event.getBlock(), event.getLines());
+                portal = Portal.of(plugin, player, event.getBlock(), lines);
             }
             plugin.getPortals().addPortal(portal);
             plugin.getPortals().savePortals();
@@ -221,13 +230,16 @@ final class LinkPortalListener implements Listener {
                 Util.msg(player, "&eCreated as server portal."
                          + " Server portal creation now disabled.");
             }
-            event.setLine(0, Util.format("[&5&lLink&r]"));
-            player.sendTitle("", Util.format("&aLink Portal created"));
+            event.line(0, Component.text("[").color(NamedTextColor.WHITE)
+                       .append(Component.text("Link", NamedTextColor.BLUE, TextDecoration.BOLD))
+                       .append(Component.text("]")));
+            player.showTitle(Title.title(Component.empty(),
+                                         Component.text("Link Portal created", NamedTextColor.GREEN)));
             PluginPlayerEvent.Name.MAKE_LINK_PORTAL.ultimate(plugin, player)
                 .detail(Detail.NAME, ringName)
                 .detail(Detail.COUNT, ring.size())
                 .call();
-        } else if (firstLine.equalsIgnoreCase("[portal]")) {
+        } else if (lines.get(0).equalsIgnoreCase("[portal]")) {
             event.setCancelled(true);
             if (!event.getPlayer().hasPermission("linkportal.portal")) return;
             final Block block = event.getBlock();
@@ -301,7 +313,8 @@ final class LinkPortalListener implements Listener {
         } else {
             Util.msg(player, "&3&lLinkPortal&r Link Portal \"%s\" destroyed", ringName);
         }
-        player.sendTitle("", Util.format("&cLink Portal destroyed"));
+        player.showTitle(Title.title(Component.empty(),
+                                     Component.text("Link Portal destroyed", NamedTextColor.RED)));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)

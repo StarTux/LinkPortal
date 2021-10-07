@@ -16,7 +16,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.Sign;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -126,15 +125,11 @@ public final class Portal {
         return new Portal(plugin, signWorld, signX, signY, signZ, ownerUuid, ownerName, ringName);
     }
 
-    static String ringNameOf(String[] lines) {
-        return lines[1];
+    static String ringNameOf(List<String> lines) {
+        return lines.get(1);
     }
 
-    static String ringNameOf(Sign sign) {
-        return ringNameOf(sign.getLines());
-    }
-
-    static Portal of(LinkPortalPlugin plugin, Player player, Block block, String[] lines) {
+    static Portal of(LinkPortalPlugin plugin, Player player, Block block, List<String> lines) {
         String signWorld = block.getWorld().getName();
         int signX = block.getX();
         int signY = block.getY();
@@ -146,7 +141,7 @@ public final class Portal {
         return new Portal(plugin, signWorld, signX, signY, signZ, ownerUuid, ownerName, ringName);
     }
 
-    static Portal of(LinkPortalPlugin plugin, Block block, String[] lines) {
+    static Portal of(LinkPortalPlugin plugin, Block block, List<String> lines) {
         String signWorld = block.getWorld().getName();
         int signX = block.getX();
         int signY = block.getY();
@@ -249,7 +244,7 @@ public final class Portal {
         boolean result = entityWalkThroughPortal(player);
         if (result) {
             final String displayName;
-            if (ownerUuid == player.getUniqueId()) {
+            if (ownerUuid.equals(player.getUniqueId())) {
                 displayName = "your";
             } else {
                 if (ownerName.endsWith("s")) {
