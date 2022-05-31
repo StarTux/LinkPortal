@@ -45,8 +45,8 @@ public final class Portal {
 
     public Block getAttachedBlock() {
         Block signBlock = getSignBlock();
-        if (!Util.isLinkSign(signBlock)) return null;
         if (signBlock == null) return null;
+        if (!Util.isLinkSign(signBlock)) return null;
         BlockFace attachedFace = Util.getAttachedFace(signBlock);
         if (attachedFace == null) return null;
         return signBlock.getRelative(attachedFace);
@@ -254,10 +254,10 @@ public final class Portal {
                 }
             }
             Util.msg(player, "&3&lLinkPortal&r You enter &a%s&r Link Portal &a%s", displayName, ringName);
-            PluginPlayerEvent.Name.LINK_PORTAL_TRAVEL.ultimate(plugin, player)
+            PluginPlayerEvent.Name.LINK_PORTAL_TRAVEL.make(plugin, player)
                 .detail(Detail.OWNER, ownerUuid)
                 .detail(Detail.NAME, ringName)
-                .call();
+                .callEvent();
         } else {
             Util.msg(player, "&4&lLinkPortal&r &cThis Link Portal has no destination");
         }

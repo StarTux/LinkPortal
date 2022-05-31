@@ -235,10 +235,10 @@ final class LinkPortalListener implements Listener {
                        .append(Component.text("]")));
             player.showTitle(Title.title(Component.empty(),
                                          Component.text("Link Portal created", NamedTextColor.GREEN)));
-            PluginPlayerEvent.Name.MAKE_LINK_PORTAL.ultimate(plugin, player)
+            PluginPlayerEvent.Name.MAKE_LINK_PORTAL.make(plugin, player)
                 .detail(Detail.NAME, ringName)
                 .detail(Detail.COUNT, ring.size())
-                .call();
+                .callEvent();
         } else if (lines.get(0).equalsIgnoreCase("[portal]")) {
             event.setCancelled(true);
             if (!event.getPlayer().hasPermission("linkportal.portal")) return;
