@@ -126,6 +126,7 @@ final class Util {
     }
 
     static boolean isSign(Block block) {
+        if (block == null) return false;
         switch (block.getType()) {
         case ACACIA_SIGN:
         case ACACIA_WALL_SIGN:
@@ -188,6 +189,7 @@ final class Util {
     }
 
     static boolean isLinkSign(Block block) {
+        if (block == null) return false;
         if (!isSign(block)) return false;
         BlockState state = block.getState();
         if (!(state instanceof Sign)) return false;

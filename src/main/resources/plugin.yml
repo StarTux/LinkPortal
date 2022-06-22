@@ -2,7 +2,7 @@ main: com.winthier.linkportal.LinkPortalPlugin
 name: LinkPortal
 
 version: 0.1
-api-version: 1.18
+api-version: 1.19
 
 description: Link parallel worlds via nether portals
 author: StarTux
